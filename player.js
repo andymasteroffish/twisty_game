@@ -1,4 +1,7 @@
-const max_step_height = 7;
+const max_step_height = 5;
+const push_per_press = 0.014;
+const slope_push = 0.001;
+const max_slope_push = 0.006;
 
 function make_player(){
 	let p = {
@@ -6,13 +9,8 @@ function make_player(){
 		speed : PI*0.01,
 		vel : 0,
 		dist: 0,
-		push_per_press : 0.014,
 		fric : 0.95,
-		slope_push : 0.000,
-		max_slope_push : 0.006,
-		size : 10,
-		x : 0,		//x and y are derived from the angle		
-		y : 0
+		size : 10
 	}
 
 	return p;
@@ -36,7 +34,7 @@ function player_physics_update(player, ring){
 	let slope = ring.dists[ring_pos_high] - ring.dists[ring_pos_low];
 
 	//get the push for being on the slop
-	let slope_push = slope * player.slope_push;
+	let cur_slope_push = slope * slope_push;
 
 	//distance can be a lerped value between the two
 	let prc = ring_pos % 1;
@@ -53,7 +51,7 @@ function player_physics_update(player, ring){
 	if (player.vel > 0 && slope < -max_step_height){
 		can_move = false;
 		player.vel = 0;
-		slope_push = 0;
+		cur_slope_push = 0;
 		player.angle = ring_pos_low * ring_steps_2_radians;
 		
 		console.log("ya boy!");
@@ -61,7 +59,7 @@ function player_physics_update(player, ring){
 	if (player.vel < 0 && slope > max_step_height){
 		can_move = false;
 		player.vel = 0;
-		slope_push = 0;
+		cur_slope_push = 0;
 		player.angle = ring_pos_high * ring_steps_2_radians;
 		
 		console.log("ya girl!");
@@ -72,12 +70,12 @@ function player_physics_update(player, ring){
 	}
 
 	//apply the slope to velocity
-	if (abs(slope_push) > player.max_slope_push){
-		slope_push = Math.sign(slope_push) * player.max_slope_push;
+	if (abs(cur_slope_push) > max_slope_push){
+		cur_slope_push = Math.sign(slope_push) * max_slope_push;
 	}
 	//console.log("slope push "+slope_push)
 
-	player.vel += slope_push;
+	player.vel += cur_slope_push;
 
 	//apply friction
 	player.vel *= player.fric;
@@ -87,15 +85,15 @@ function player_physics_update(player, ring){
 
 }
 
-function draw_player(player, fbo){
-	fbo.stroke(0,100,255);
-	fbo.strokeWeight(2);
-	fbo.noFill();
+function draw_player(player){
+	// fbo.stroke(0,100,255);
+	// fbo.strokeWeight(2);
+	// fbo.noFill();
 
 
 	//place the player (move this to draw)
-	let x = game_w/2 + cos(player.angle +(-disp_angle + PI/2)) * player.dist;
-	let y = game_h/2 + sin(player.angle +(-disp_angle + PI/2)) * player.dist;
+	let x = game_w/2 + cos(player.angle +(-disp_angle + PI/2)) * (player.dist - player.size/2);
+	let y = game_h/2 + sin(player.angle +(-disp_angle + PI/2)) * (player.dist - player.size/2);
 
 	// console.log("player speed "+player.speed);
 	// console.log("player angle "+player.angle);
@@ -105,6 +103,7 @@ function draw_player(player, fbo){
 	// let y = fbo.height/2 + sin(player.angle) * dist;
 	
 	//fbo.circle(x, y, player.size);
-	bresenham_circle(x,y, player.size/2, 10, fbo);
+	cur_col = 2;
+	bresenham_circle(x,y, player.size/2, 10);
 }
 

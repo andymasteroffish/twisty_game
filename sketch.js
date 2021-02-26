@@ -4,8 +4,7 @@ let ring;
 let disp_angle = 0;
 let disp_angle_lerp = 0.03;
 
-let fbo;
-let big_pic;
+
 
 const game_w = 100;
 const game_h = 100;
@@ -15,13 +14,14 @@ const big_scale = 8
 function setup() {
 	console.log("hi "+PI);
 
-
-	noSmooth();
+	setup_drawing();
 
 	pixelDensity(1.0);
-	fbo = createGraphics(game_w,game_h);
-	
-	big_pic = createImage(game_w*big_scale, game_h*big_scale);
+
+	grid = new Array(game_w);
+	for (let i=0; i<game_w; i++){
+		grid[i] = new Array(game_h);
+	}
 	
 
 	//createCanvas(window.innerWidth, window.innerHeight);
@@ -71,25 +71,14 @@ function update(){
 }
 
 function draw_game(){
+	clear_grid();
 
-	fbo.clear();
-	fbo.background(0,0,0);
+	draw_player(player);
+	draw_ring(ring);
 
-	// fbo.push();
-	// fbo.translate(game_w/2, game_h/2);
-	// fbo.rotate(-disp_angle + PI/2);
-	// fbo.translate(-game_w/2, -game_h/2);
+	pixel_effects();
 
-	draw_player(player, fbo);
-	draw_ring(ring, fbo);
-
-	//fbo.pop();
-
-	// fbo.stroke(255);
-	// fbo.strokeWeight(1);
-	// bresenham_line(floor(game_w/2), floor(game_h/2), floor(mouseX/big_scale), floor(mouseY/big_scale), fbo);
-
-	fbo2screen();
+	grid2screen();
 
 	fill(255);
 	textSize(10);
@@ -98,41 +87,31 @@ function draw_game(){
 	debug_text += "\nang:"+player.angle;
 	text(debug_text, 10,40);
 
-	fill(255);
-	image(fbo,width-fbo.width,0);
+	//fill(255);
+	//image(fbo,width-fbo.width,0);
 
 
 	
 }
 
-//grabs our small FBO and blows it up to screen size
-function fbo2screen(){
-	fbo.loadPixels();
+//grabs our small grid and blows it up to screen size
+function grid2screen(){
 	loadPixels();
 	let demo_col = [0,0,0];
-	for (let c = 0; c < fbo.width; c++) {
-		for (let r = 0; r < fbo.height; r++) {
-			// if (c==floor(mouseX) && r==floor(mouseY)){
-			// 	let pos = (r*fbo.width + c) * 4;
-			// 	demo_col[0] = fbo.pixels[pos+0];
-			// 	demo_col[1] = fbo.pixels[pos+1];
-			// 	demo_col[2] = fbo.pixels[pos+2];
-			// 	console.log(fbo.pixels[pos]+" , "+ fbo.pixels[pos+1]+" , "+ fbo.pixels[pos+2])
-			// }
-			let col = [0,0,0];
-			let pos = (r*fbo.width + c) * 4;
-			for (let i=0; i<3; i++){
-				col[i] = floor( fbo.pixels[pos+i] / 64 ) * 64;
-				col[i] *= 2
-			}
+	for (let c = 0; c < game_w; c++) {
+		for (let r = 0; r < game_h; r++) {
+
+			let col = grid[c][r];
 
 			//set the full image
 			for (let x=c*big_scale; x<(c+1)*big_scale; x++){
 				for (let y=r*big_scale; y<(r+1)*big_scale; y++){
 					let big_pos = (y*width + x) * 4;
-					pixels[big_pos+0] = col[0];
-					pixels[big_pos+1] = col[1];
-					pixels[big_pos+2] = col[2];
+
+					pixels[big_pos+0] = palette[col][0];
+					pixels[big_pos+1] = palette[col][1];
+					pixels[big_pos+2] = palette[col][2];
+
 				}		
 			}
 		}
@@ -144,10 +123,10 @@ function fbo2screen(){
 function keyPressed(){
 	
 	if (keyCode == 37){	//left
-		player.vel += player.push_per_press;
+		player.vel += push_per_press;
 	}
 	if (keyCode == 39){	//right
-		player.vel -= player.push_per_press;
+		player.vel -= push_per_press;
 	}
 }
 

@@ -23,10 +23,12 @@ function make_ring(){
 	return ring;
 }
 
-function draw_ring(ring, fbo) {
-	fbo.noFill();
-	fbo.stroke(255);
-	fbo.strokeWeight(1);
+function draw_ring(ring) {
+	// fbo.noFill();
+	// fbo.stroke(255);
+	// fbo.strokeWeight(1);
+
+	cur_col = 1;
 
 	//fbo.beginShape();
 	let pnts = new Array(num_ring_steps);
@@ -42,7 +44,7 @@ function draw_ring(ring, fbo) {
 
 	for (let i=0; i<num_ring_steps; i++){
 		let next_pnt = pnts[ (i+1)%num_ring_steps ];
-		bresenham_line( pnts[i].x, pnts[i].y, next_pnt.x, next_pnt.y, fbo);
+		bresenham_line( pnts[i].x, pnts[i].y, next_pnt.x, next_pnt.y);
 	}
 
 }

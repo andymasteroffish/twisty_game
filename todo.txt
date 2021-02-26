@@ -1,0 +1,8 @@
+
+[] gravity / falling
+
+[] jumping
+
+[] goals
+
+[] obstacles
