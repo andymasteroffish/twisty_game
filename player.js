@@ -5,6 +5,7 @@ function make_player(){
 		angle : PI,
 		speed : PI*0.01,
 		vel : 0,
+		dist: 0,
 		push_per_press : 0.014,
 		fric : 0.95,
 		slope_push : 0.000,
@@ -41,10 +42,7 @@ function player_physics_update(player, ring){
 	let prc = ring_pos % 1;
 	let dist = (1.0-prc) * ring.dists[ring_pos_low] + prc * ring.dists[ring_pos_high];
 
-	//place the player
-	player.x = game_w/2 + cos(player.angle) * dist;
-	player.y = game_h/2 + sin(player.angle) * dist;
-
+	player.dist = dist;
 	
 
 	//attempt to move based on velocity
@@ -94,6 +92,11 @@ function draw_player(player, fbo){
 	fbo.strokeWeight(2);
 	fbo.noFill();
 
+
+	//place the player (move this to draw)
+	let x = game_w/2 + cos(player.angle +(-disp_angle + PI/2)) * player.dist;
+	let y = game_h/2 + sin(player.angle +(-disp_angle + PI/2)) * player.dist;
+
 	// console.log("player speed "+player.speed);
 	// console.log("player angle "+player.angle);
 
@@ -101,6 +104,7 @@ function draw_player(player, fbo){
 	// let x = fbo.width/2 + cos(player.angle) * dist;
 	// let y = fbo.height/2 + sin(player.angle) * dist;
 	
-	fbo.circle(player.x,player.y, player.size);
+	//fbo.circle(x, y, player.size);
+	bresenham_circle(x,y, player.size/2, 10, fbo);
 }
 

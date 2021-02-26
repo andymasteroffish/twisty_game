@@ -7,13 +7,10 @@ let disp_angle_lerp = 0.03;
 let fbo;
 let big_pic;
 
-const num_ring_steps = 100;
-const ring_steps_2_radians = 6.283185/num_ring_steps;
-
 const game_w = 100;
 const game_h = 100;
 
-const big_scale = 10
+const big_scale = 8
 
 function setup() {
 	console.log("hi "+PI);
@@ -78,15 +75,19 @@ function draw_game(){
 	fbo.clear();
 	fbo.background(0,0,0);
 
-	fbo.push();
-	fbo.translate(game_w/2, game_h/2);
-	fbo.rotate(-disp_angle + PI/2);
-	fbo.translate(-game_w/2, -game_h/2);
+	// fbo.push();
+	// fbo.translate(game_w/2, game_h/2);
+	// fbo.rotate(-disp_angle + PI/2);
+	// fbo.translate(-game_w/2, -game_h/2);
 
 	draw_player(player, fbo);
 	draw_ring(ring, fbo);
 
-	fbo.pop();
+	//fbo.pop();
+
+	// fbo.stroke(255);
+	// fbo.strokeWeight(1);
+	// bresenham_line(floor(game_w/2), floor(game_h/2), floor(mouseX/big_scale), floor(mouseY/big_scale), fbo);
 
 	fbo2screen();
 
@@ -99,6 +100,9 @@ function draw_game(){
 
 	fill(255);
 	image(fbo,width-fbo.width,0);
+
+
+	
 }
 
 //grabs our small FBO and blows it up to screen size
