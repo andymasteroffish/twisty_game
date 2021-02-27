@@ -192,11 +192,23 @@ function* do_flip_jump(p) {
 
 function draw_player(player){
 
-	//place the player (move this to draw)
-	let x = game_w/2 + cos(player.angle +(-disp_angle + PI/2)) * player.dist;// (player.dist - player.size/2);
-	let y = game_h/2 + sin(player.angle +(-disp_angle + PI/2)) * player.dist;//(player.dist - player.size/2);
-	//fbo.circle(x, y, player.size);
+	//get the center of the player
+	let x = game_w/2 + cos(player.angle +(-disp_angle + PI/2)) * player.dist;
+	let y = game_h/2 + sin(player.angle +(-disp_angle + PI/2)) * player.dist;
+
 	cur_col = 2;
 	bresenham_circle(x,y, player.size/2, 10);
+
+	//spokes
+	let num_spokes = 4;
+	for (let i=0; i<num_spokes; i++){
+		let fake_angle = -player.angle  * player.dist * 0.13;
+		let a =  fake_angle + (TAU/num_spokes) * i -disp_angle;
+		let sx = x + cos(a) * player.size/2;
+		let sy = y + sin(a) * player.size/2;
+		bresenham_line(x,y, sx, sy);
+
+	}
+
 }
 
