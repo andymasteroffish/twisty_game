@@ -3,7 +3,8 @@ const ring_steps_2_radians = 6.283185/num_ring_steps;
 
 function make_ring(){
 	let ring = {
-		dists: new Array(num_ring_steps)
+		dists: new Array(num_ring_steps),
+		gem_spots : []
 	}
 
 	//testing
@@ -20,7 +21,15 @@ function make_ring(){
 		}
 	}
 
+	for (let i=0; i<5; i++){
+		ring.gem_spots.push(i*20);
+	}
+
 	return ring;
+}
+
+function angle_at_ring_pos(index){
+	return index * ring_steps_2_radians;
 }
 
 function draw_ring(ring) {

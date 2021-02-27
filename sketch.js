@@ -1,5 +1,7 @@
 let player;
 let ring;
+let gems = [];
+let particles = [];
 
 let disp_angle = 0;
 let disp_angle_lerp = 0.03;
@@ -12,6 +14,7 @@ const game_h = 100;
 const big_scale = 7;
 
 let debug_show_palette = true;
+let debug_no_cam_rotate = false;
 
 function setup() {
 	console.log("hi "+PI);
@@ -33,20 +36,38 @@ function setup() {
 	createCanvas(game_w*big_scale, game_h*big_scale);
 
 	//create some game objects
-	ring = make_ring();
+	//ring = make_ring();
 	player = make_player();
 
 	disp_angle = player.angle;
+	if (debug_no_cam_rotate)	disp_angle = PI/2;
 
 	clear_grid();
+
+	reset_level();
 	
+}
+
+function reset_level(){
+	gems = [];
+
+	//get the level shape
+	ring = make_ring();
+
+	//populate gems
+	ring.gem_spots.forEach(spot =>{
+		let angle = angle_at_ring_pos(spot);
+		let dist = ring.dists[spot];
+		let gem = make_gem(angle, dist);
+		gems.push(gem);
+	})
 }
 
 
 function draw() {
 	background(230);
 
-	update();
+	update_game();
 
 	draw_game();
 
@@ -54,9 +75,36 @@ function draw() {
 	
 }
 
-function update(){
+function update_game(){
 
+	//move the player
 	player_physics_update(player, ring);
+
+	//update gems
+	for(let i=gems.length-1; i>=0; i--){
+		let gem = gems[i];
+
+		update_hit_pos(gem);
+
+		//did the player collect?
+		if (hit_check(player, gem)){
+			console.log("got em!");
+			break_gem(gem);
+			gems.splice(i,1);
+		}
+
+	}
+
+	//update particles
+	for(let i=particles.length-1; i>=0; i--){
+		update_particle(particles[i]);
+
+		if (particles[i].kill_me){
+			particles.splice(i,1);
+		}
+	}
+
+	
 
 	//get our lerp angle for the camera
 	if (!player.doing_flip_jump){
@@ -78,6 +126,9 @@ function update(){
 		if (disp_angle < 0)		disp_angle += TAU;
 		if (disp_angle > TAU)	disp_angle -= TAU;
 	}
+	if (debug_no_cam_rotate){
+		disp_angle = PI/2;
+	}
 
 }
 
@@ -86,10 +137,22 @@ function draw_game(){
 
 	pixel_effects_early();
 
-	draw_player(player);
 	draw_ring(ring);
 
-	pixel_effects();
+	draw_player(player);
+
+	gems.forEach(gem => {
+		draw_gem(gem);
+		//debug_draw_obj(gem);
+	})
+
+	particles.forEach(particle => {
+		draw_particle(particle)
+	})
+
+	//debug_draw_obj(player);
+
+	pixel_effects_late();
 
 	grid2screen();
 
@@ -101,7 +164,6 @@ function draw_debug(){
 	textSize(10);
 	textAlign(LEFT, TOP);
 	let debug_text = "fps:"+floor(frameRate());
-	debug_text += "\nvel:"+player.vel;
 	debug_text += "\nang:"+player.angle;
 	debug_text += "\ndist:"+player.dist;
 	debug_text += "\ngroudned:"+player.is_grounded;
@@ -153,6 +215,28 @@ function keyPressed(){
 	}
 }
 
+
+function update_hit_pos(obj){
+	//get the center of the object
+	obj.hit_x = game_w/2 + cos(obj.angle) * (obj.dist-obj.size/2);
+	obj.hit_y = game_h/2 + sin(obj.angle) * (obj.dist-obj.size/2);
+}
+
+function hit_check(obj1, obj2){
+	return dist(obj1.hit_x, obj1.hit_y, obj2.hit_x, obj2.hit_y) < (obj1.size + obj2.size)/2;
+}
+
+function dist_sq(x1,y1, x2,y2){
+	var a = x1 - x2;
+	var b = y1 - y2;
+	return  a*a + b*b ;
+}
+
+
+function debug_draw_obj(obj){
+	cur_col = 9;
+	bresenham_circle(obj.hit_x, obj.hit_y, obj.size/2, 10);
+}
 
 
 

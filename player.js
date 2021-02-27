@@ -21,6 +21,8 @@ function make_player(){
 		is_grounded : false,
 		fric : 0.95,
 		size : 10,
+		hit_x : 0,	//x and y are derived form angle and dist
+		hit_y : 0,
 		doing_flip_jump : false,
 		flip_jump_gen : null
 	}
@@ -32,22 +34,23 @@ function rotary_input(player, dir){
 	player.angle_vel += push_per_press * dir;
 }
 
-function player_physics_update(player, ring){
+
+function player_physics_update(p, ring){
 
 	//if we're in the middle of a flip jump, just do that and bounce out
-	if (player.doing_flip_jump){
-		player.flip_jump_gen.next();
+	if (p.doing_flip_jump){
+		p.flip_jump_gen.next();
 		return;
 	}
 
 
 	//keep in range
-	if (player.angle > TAU)	player.angle -= TAU;
-	if (player.angle < 0)	player.angle += TAU;
+	if (p.angle > TAU)	p.angle -= TAU;
+	if (p.angle < 0)	p.angle += TAU;
 
 
 	//get the player's point on the ring
-	let ring_pos = map( player.angle, 0, TAU, 0, num_ring_steps);
+	let ring_pos = map( p.angle, 0, TAU, 0, num_ring_steps);
 
 	//get the two points it is sitting between
 	let ring_pos_low = floor(ring_pos);
@@ -64,58 +67,62 @@ function player_physics_update(player, ring){
 	let prc = ring_pos % 1;
 	let dist = (1.0-prc) * ring.dists[ring_pos_low] + prc * ring.dists[ring_pos_high];
 	//adjust for player size
-	dist -= player.size/2;
+	dist -= p.size/2;
+
+	//set the hit pos
+	p.hit_x = game_w/2 + cos(p.angle) * (p.dist);
+	p.hit_y = game_h/2 + sin(p.angle) * (p.dist);
 
 	//apply gravity
-	player.dist_vel += gravity;
-	player.dist += player.dist_vel;
+	p.dist_vel += gravity;
+	p.dist += p.dist_vel;
 
 	//if the player is greater or equal to it, they're grounded
-	if (player.dist >= dist - dist_to_snap_to_ground){
-		player.dist = dist;
-		player.is_grounded = true;
-		player.dist_vel = 0;
+	if (p.dist >= dist - dist_to_snap_to_ground){
+		p.dist = dist;
+		p.is_grounded = true;
+		p.dist_vel = 0;
 	}
 	//otherwise they are in the air
 	else{
-		player.is_grounded = false;
+		p.is_grounded = false;
 	}
 	
 
 	//attempt to move angularly based on velocity
-	let new_angle = player.angle + player.angle_vel;
+	let new_angle = p.angle + p.angle_vel;
 	let can_move = true
 
 	//are we against a slope that is too steep
-	if (player.angle_vel > 0 && slope < -max_step_height){
+	if (p.angle_vel > 0 && slope < -max_step_height){
 		can_move = false;
-		player.angle_vel = 0;
+		p.angle_vel = 0;
 		cur_slope_push = 0;
-		player.angle = ring_pos_low * ring_steps_2_radians;
+		p.angle = ring_pos_low * ring_steps_2_radians;
 	}
-	if (player.angle_vel < 0 && slope > max_step_height){
+	if (p.angle_vel < 0 && slope > max_step_height){
 		can_move = false;
-		player.angle_vel = 0;
+		p.angle_vel = 0;
 		cur_slope_push = 0;
-		player.angle = ring_pos_high * ring_steps_2_radians;
+		p.angle = ring_pos_high * ring_steps_2_radians;
 	}
 
 	if (can_move){
-		player.angle = new_angle;
+		p.angle = new_angle;
 	}
 
 	//apply the slope to velocity if we're grounded
-	if (player.is_grounded){
+	if(p.is_grounded){
 		if (abs(cur_slope_push) > max_slope_push){
 			cur_slope_push = Math.sign(slope_push) * max_slope_push;
 		}
-		player.angle_vel += cur_slope_push;
+		p.angle_vel += cur_slope_push;
 	}
 
 	
 
 	//apply friction
-	player.angle_vel *= player.fric;
+	p.angle_vel *= p.fric;
 
 	// console.log("ring pos: "+ring_pos_low+" , "+ring_pos_high);
 	// console.log("slope: "+slope);
@@ -173,6 +180,10 @@ function* do_flip_jump(p) {
 		//have the camera track
 		disp_angle = (1.0-cam_prc)*start_disp_angle + cam_prc * end_disp_angle;
 
+		//set the hit pos
+		p.hit_x = game_w/2 + cos(p.angle) * (p.dist);
+		p.hit_y = game_h/2 + sin(p.angle) * (p.dist);
+
 		yield null;
 	}
 
@@ -186,7 +197,6 @@ function* do_flip_jump(p) {
 	p.angle_vel = 0;
 	p.dist_vel = 0;
 	p.doing_flip_jump = false;
-	console.log("final dist "+p.dist);
 	return null;
 }
 

@@ -53,6 +53,9 @@ function pixel_effects_early(){
 				if (c == 12)	next_col = 13;
 				if (c == 13)	next_col = 14;
 				if (c == 14)	next_col = 15;
+				//gem colors
+				if (c == 10)	next_col = 11;
+				if (c == 11)	next_col = 14;
 
 				//try to advance and move
 				set_pix(x-1+floor(random(3)), y-floor(random(2)), next_col);
@@ -65,13 +68,7 @@ function pixel_effects_early(){
 	}
 }
 
-function set_pix(x,y,c){
-	if (x>=0 && x<game_w && y>=0 && y<game_h){
-		grid[x][y] = c;
-	}
-}
-
-function pixel_effects() {
+function pixel_effects_late() {
 	for (let x=0; x<game_w; x++){
 		for (let y=0; y<game_h; y++){
 			if (y<game_h){
@@ -108,6 +105,45 @@ function pixel_effects() {
 		}
 	}
 }
+
+function set_pix(x,y,c){
+	if (x>=0 && x<game_w && y>=0 && y<game_h){
+		grid[x][y] = c;
+	}
+}
+
+function get_matching_pic_in_circle(center_x, center_y, range, match_cols){
+	center_x = floor(center_x);
+	center_y = floor(center_y);
+	range = floor(range);
+
+	let start_x = Math.max(0, center_x - range);
+	let end_x = Math.min(game_w-1, center_x + range);
+
+	let start_y = Math.max(0, center_y - range);
+	let end_y = Math.min(game_h-1, center_y + range);
+
+	let return_val = [];
+
+	for (let x=start_x; x<=end_x; x++){
+		for (let y=start_y; y<=end_y; y++){
+			//todo: actually do a circle
+
+			//check if this pixel is in the match list
+			if (match_cols.includes(grid[x][y])){
+				return_val.push( {
+					x : x,
+					y : y,
+					col : grid[x][y]
+				})
+			}
+
+		}
+	}
+
+	return return_val;
+}
+
 
 //https://en.wikipedia.org/wiki/Bresenham's_line_algorithm
 //https://stackoverflow.com/questions/4672279/bresenham-algorithm-in-javascript
