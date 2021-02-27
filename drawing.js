@@ -56,6 +56,11 @@ function pixel_effects_early(){
 				//gem colors
 				if (c == 10)	next_col = 11;
 				if (c == 11)	next_col = 14;
+				//obstacle colors
+				if (c == 8)	next_col = 9;
+				if (c == 9)	next_col = random(1) < 0.1 ? 8 : 6;
+				if (c == 6)	next_col = 7;
+
 
 				//try to advance and move
 				set_pix(x-1+floor(random(3)), y-floor(random(2)), next_col);

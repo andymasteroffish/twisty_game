@@ -1,6 +1,7 @@
 let player;
 let ring;
 let gems = [];
+let obstacles = [];
 let particles = [];
 
 let disp_angle = 0;
@@ -15,12 +16,9 @@ const big_scale = 7;
 
 let debug_show_palette = true;
 let debug_no_cam_rotate = false;
+let debug_no_effects = false;
 
 function setup() {
-	console.log("hi "+PI);
-
-	let testo = color('#0f0');
-	console.log(testo);
 
 	setup_drawing();
 
@@ -61,6 +59,18 @@ function reset_level(){
 		let gem = make_gem(angle, dist);
 		gems.push(gem);
 	})
+
+	//populate obstacles
+	ring.obstacle_spots.forEach(spot =>{
+		let angle = angle_at_ring_pos(spot);
+		let dist = ring.dists[spot];
+		let obstacle = make_obstacle(angle, dist);
+		console.log(obstacle)
+		obstacles.push(obstacle);
+	})
+
+	console.log("gems: "+gems.length);
+	console.log("obstacles: "+obstacles.length);
 }
 
 
@@ -92,7 +102,18 @@ function update_game(){
 			break_gem(gem);
 			gems.splice(i,1);
 		}
+	}
 
+	//update obstacles
+	for(let i=obstacles.length-1; i>=0; i--){
+		let obstacle = obstacles[i];
+
+		update_hit_pos(obstacle);
+
+		//did the player get smashed?
+		if (hit_check(player, obstacle)){
+			console.log("kill em!");
+		}
 	}
 
 	//update particles
@@ -133,9 +154,10 @@ function update_game(){
 }
 
 function draw_game(){
-	//clear_grid();
+	
 
-	pixel_effects_early();
+	if (!debug_no_effects) 	pixel_effects_early();
+	else 					clear_grid();
 
 	draw_ring(ring);
 
@@ -143,6 +165,11 @@ function draw_game(){
 
 	gems.forEach(gem => {
 		draw_gem(gem);
+		//debug_draw_obj(gem);
+	})
+
+	obstacles.forEach(obs => {
+		draw_obstacle(obs);
 		//debug_draw_obj(gem);
 	})
 
@@ -212,6 +239,9 @@ function keyPressed(){
 
 	if (key == 'p'){
 		debug_show_palette = !debug_show_palette;
+	}
+	if (key == 'e'){
+		debug_no_effects = !debug_no_effects;
 	}
 }
 
