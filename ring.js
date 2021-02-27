@@ -8,16 +8,16 @@ function make_ring(){
 
 	//testing
 	for (let i=0; i<num_ring_steps; i++){
-		let prc = i / num_ring_steps;
-		ring.dists[i] = (1.0-prc)*20 + prc*40;
+		// let prc = i / num_ring_steps;
+		// ring.dists[i] = (1.0-prc)*20 + prc*40;
 
 		//ring.dists[i] = 30 + sin(i*0.4) * 3;
 
-		// if (i<num_ring_steps/2){
-		// 	ring.dists[i] = 20;
-		// }else{
-		// 	ring.dists[i] = 40;
-		// }
+		if ((i+10)%num_ring_steps < num_ring_steps/2){
+			ring.dists[i] = 20;
+		}else{
+			ring.dists[i] = 40;
+		}
 	}
 
 	return ring;

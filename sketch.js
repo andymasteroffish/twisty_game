@@ -9,7 +9,7 @@ let disp_angle_lerp = 0.03;
 const game_w = 100;
 const game_h = 100;
 
-const big_scale = 8
+const big_scale = 7;
 
 function setup() {
 	console.log("hi "+PI);
@@ -24,9 +24,10 @@ function setup() {
 	}
 	
 
-	//createCanvas(window.innerWidth, window.innerHeight);
+	//make our window
 	createCanvas(game_w*big_scale, game_h*big_scale);
 
+	//create some game objects
 	ring = make_ring();
 	player = make_player();
 
@@ -49,24 +50,25 @@ function update(){
 	player_physics_update(player, ring);
 
 	//get our lerp angle for the camera
+	if (!player.doing_flip_jump){
+		let lerp_target1 = player.angle;
+		let lerp_target2 = player.angle + TAU;
+		let lerp_target3 = player.angle - TAU;
 
-	let lerp_target1 = player.angle;
-	let lerp_target2 = player.angle + TAU;
-	let lerp_target3 = player.angle - TAU;
+		let dist1 = abs(lerp_target1 - disp_angle);
+		let dist2 = abs(lerp_target2 - disp_angle);
+		let dist3 = abs(lerp_target3 - disp_angle);
 
-	let dist1 = abs(lerp_target1 - disp_angle);
-	let dist2 = abs(lerp_target2 - disp_angle);
-	let dist3 = abs(lerp_target3 - disp_angle);
+		let lerp_target = lerp_target1;
+		if (dist1 < dist2 && dist1 < dist3){	lerp_target = lerp_target1; }
+		if (dist2 < dist1 && dist2 < dist3){	lerp_target = lerp_target2;	}
+		if (dist3 < dist1 && dist3 < dist2){	lerp_target = lerp_target3; }
 
-	let lerp_target = lerp_target1;
-	if (dist1 < dist2 && dist1 < dist3){	lerp_target = lerp_target1; }
-	if (dist2 < dist1 && dist2 < dist3){	lerp_target = lerp_target2;	}
-	if (dist3 < dist1 && dist3 < dist2){	lerp_target = lerp_target3; }
+		disp_angle = (1.0-disp_angle_lerp) * disp_angle  + disp_angle_lerp * lerp_target;
 
-	disp_angle = (1.0-disp_angle_lerp) * disp_angle  + disp_angle_lerp * lerp_target;
-
-	if (disp_angle < 0)		disp_angle += TAU;
-	if (disp_angle > TAU)	disp_angle -= TAU;
+		if (disp_angle < 0)		disp_angle += TAU;
+		if (disp_angle > TAU)	disp_angle -= TAU;
+	}
 
 }
 
@@ -85,6 +87,9 @@ function draw_game(){
 	let debug_text = "fps:"+floor(frameRate());
 	debug_text += "\nvel:"+player.vel;
 	debug_text += "\nang:"+player.angle;
+	debug_text += "\ndist:"+player.dist;
+	debug_text += "\ngroudned:"+player.is_grounded;
+	debug_text += "\njumping:"+player.doing_flip_jump;
 	text(debug_text, 10,40);
 
 	//fill(255);
@@ -121,12 +126,21 @@ function grid2screen(){
 }
 
 function keyPressed(){
-	
-	if (keyCode == 37){	//left
-		player.vel += push_per_press;
-	}
-	if (keyCode == 39){	//right
-		player.vel -= push_per_press;
+
+	if (!player.doing_flip_jump){
+		
+		if (keyCode == 37){	//left
+			rotary_input(player, 1);
+		}
+		if (keyCode == 39){	//right
+			rotary_input(player, -1);
+		}
+
+		if (keyCode == 90){	//Z
+			start_flip_jump(player);
+		}
+
+		console.log(keyCode);
 	}
 }
 
