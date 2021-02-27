@@ -1,13 +1,28 @@
 let grid;
 
-let palette = new Array(4);
+let palette = new Array(16);
 let cur_col = 0;
 
 function setup_drawing(){
-	palette[0] = [0,0,0];
-	palette[1] = [255,255,255];
-	palette[2] = [100,100,255];
-	palette[3] = [255,150,150];
+	palette[0] = color('#1f0e1c');
+	palette[1] = color('#f5edba');
+	palette[2] = color('#e4943a');
+	palette[3] = color('#9a6348');
+
+	palette[4] = color('#8c8fae');
+	palette[5] = color('#584563');
+	palette[6] = color('#70377f');
+	palette[7] = color('#3e2137');
+
+	palette[8] = color('#d26471');
+	palette[9] = color('#9d303b');
+	palette[10] = color('#c0c741');
+	palette[11] = color('#647d34');
+
+	palette[12] = color('#7ec4c1');
+	palette[13] = color('#34859d');
+	palette[14] = color('#17434b');
+	palette[15] = color('#1f0e1c');
 }
 
 function clear_grid() {
@@ -18,13 +33,76 @@ function clear_grid() {
 	}
 }
 
+function pixel_effects_early(){
+	for (let x=0; x<game_w; x++){
+		for (let y=0; y<game_h; y++){
+
+			let c = grid[x][y];
+			if (c>0 ){
+				//chance to just turn the pixel off
+				if(random(9)<1)	set_pix(x,y,0);
+
+				//figure out what the next color would be
+				let next_col = 0;
+				//ring colors
+				if (c==1)	next_col = 2;
+				if (c==2)	next_col = 3;
+				if (c==3)	next_col = 7;
+				if (c==7)	next_col = 0;
+				//player colors
+				if (c == 12)	next_col = 13;
+				if (c == 13)	next_col = 14;
+				if (c == 14)	next_col = 15;
+
+				//try to advance and move
+				set_pix(x-1+floor(random(3)), y-floor(random(2)), next_col);
+				
+
+				//and possibly jump up
+				if(random(9)<2 && c>1)	set_pix(x,y-2, c)
+			}
+		}
+	}
+}
+
+function set_pix(x,y,c){
+	if (x>=0 && x<game_w && y>=0 && y<game_h){
+		grid[x][y] = c;
+	}
+}
+
 function pixel_effects() {
 	for (let x=0; x<game_w; x++){
 		for (let y=0; y<game_h; y++){
 			if (y<game_h){
-				if (grid[x][y] == 0 && grid[x][y+1] == 1){
-					grid[x][y] = 3;
-				}
+
+				// let c = grid[x][y];
+				// if (c>0){
+				// 	if(random(9)<1)	grid[x][y]=0;
+				// 	grid[x-1+floor(random(3))][y-floor(random(2))] = (c+1)%7
+				// 	if(random(9)<2 && c>1)	grid[x][y-3] = c
+				// }
+				// let c = grid[x][y];
+				// if (c>1){
+				// 	if(c!=2 || random(9)<1)	grid[x][y]=0;
+				// 	grid[x-1+floor(random(3))][y-floor(random(2))] = (c+1)%7
+				// 	if(random(9)<2 && c>1)	grid[x][y-3] = c
+				// }
+
+
+
+
+			// c=pget(x,y)
+			// if c>1 then
+			// 	if(c!=2 or r(9)<1)	p(x,y,0)
+			// 	p( x-1+r(3), y-r(2), (c+1)%7)
+			// 	if(r(9)<2 and c>1)	p(x,y-3,c)
+			// end
+
+				//glow on the ring
+				// if (grid[x][y] == 0 && grid[x][y+1] == 1){
+				// 	grid[x][y] = 3;
+				// }
 			}
 			
 		}
@@ -77,4 +155,33 @@ function bresenham_circle(center_x, center_y, size, resolution){
 		bresenham_line(p1.x,p1.y, p2.x,p2.y);
 	}
 
+}
+
+
+
+
+//grabs our small grid and blows it up to screen size
+function grid2screen(){
+	loadPixels();
+	let demo_col = [0,0,0];
+	for (let c = 0; c < game_w; c++) {
+		for (let r = 0; r < game_h; r++) {
+
+			let col = grid[c][r];
+
+			//set the full image
+			for (let x=c*big_scale; x<(c+1)*big_scale; x++){
+				for (let y=r*big_scale; y<(r+1)*big_scale; y++){
+					let big_pos = (y*width + x) * 4;
+
+					pixels[big_pos+0] = palette[col].levels[0];
+					pixels[big_pos+1] = palette[col].levels[1];
+					pixels[big_pos+2] = palette[col].levels[2];
+
+				}		
+			}
+		}
+	}
+
+	updatePixels();
 }

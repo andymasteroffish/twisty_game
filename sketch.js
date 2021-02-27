@@ -11,8 +11,13 @@ const game_h = 100;
 
 const big_scale = 7;
 
+let debug_show_palette = true;
+
 function setup() {
 	console.log("hi "+PI);
+
+	let testo = color('#0f0');
+	console.log(testo);
 
 	setup_drawing();
 
@@ -32,6 +37,8 @@ function setup() {
 	player = make_player();
 
 	disp_angle = player.angle;
+
+	clear_grid();
 	
 }
 
@@ -42,6 +49,8 @@ function draw() {
 	update();
 
 	draw_game();
+
+	draw_debug();
 	
 }
 
@@ -73,7 +82,9 @@ function update(){
 }
 
 function draw_game(){
-	clear_grid();
+	//clear_grid();
+
+	pixel_effects_early();
 
 	draw_player(player);
 	draw_ring(ring);
@@ -82,48 +93,42 @@ function draw_game(){
 
 	grid2screen();
 
+	
+}
+
+function draw_debug(){
 	fill(255);
 	textSize(10);
+	textAlign(LEFT, TOP);
 	let debug_text = "fps:"+floor(frameRate());
 	debug_text += "\nvel:"+player.vel;
 	debug_text += "\nang:"+player.angle;
 	debug_text += "\ndist:"+player.dist;
 	debug_text += "\ngroudned:"+player.is_grounded;
 	debug_text += "\njumping:"+player.doing_flip_jump;
-	text(debug_text, 10,40);
-
-	//fill(255);
-	//image(fbo,width-fbo.width,0);
+	text(debug_text, 10,10);
 
 
-	
-}
-
-//grabs our small grid and blows it up to screen size
-function grid2screen(){
-	loadPixels();
-	let demo_col = [0,0,0];
-	for (let c = 0; c < game_w; c++) {
-		for (let r = 0; r < game_h; r++) {
-
-			let col = grid[c][r];
-
-			//set the full image
-			for (let x=c*big_scale; x<(c+1)*big_scale; x++){
-				for (let y=r*big_scale; y<(r+1)*big_scale; y++){
-					let big_pos = (y*width + x) * 4;
-
-					pixels[big_pos+0] = palette[col][0];
-					pixels[big_pos+1] = palette[col][1];
-					pixels[big_pos+2] = palette[col][2];
-
-				}		
+	//demoing the palette
+	if (debug_show_palette){
+		textAlign(CENTER, CENTER);
+		let box_size = 20;
+		for (let c=0; c<4; c++){
+			for (let r=0; r<4; r++){
+				let index = r*4 + c;
+				let x = width - box_size*4 + c*box_size;
+				let y = box_size*r;
+				noStroke();
+				fill(palette[index]);
+				rect(x,y,box_size,box_size);
+				fill(0)
+				text(index, x+box_size/2, y+box_size/2);
 			}
 		}
 	}
-
-	updatePixels();
 }
+
+
 
 function keyPressed(){
 
@@ -140,7 +145,11 @@ function keyPressed(){
 			start_flip_jump(player);
 		}
 
-		console.log(keyCode);
+		//console.log(keyCode);
+	}
+
+	if (key == 'p'){
+		debug_show_palette = !debug_show_palette;
 	}
 }
 

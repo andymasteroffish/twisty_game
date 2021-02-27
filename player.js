@@ -196,7 +196,7 @@ function draw_player(player){
 	let x = game_w/2 + cos(player.angle +(-disp_angle + PI/2)) * player.dist;
 	let y = game_h/2 + sin(player.angle +(-disp_angle + PI/2)) * player.dist;
 
-	cur_col = 2;
+	cur_col = 12;
 	bresenham_circle(x,y, player.size/2, 10);
 
 	//spokes
