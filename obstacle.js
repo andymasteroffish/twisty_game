@@ -1,4 +1,4 @@
-let obstacle_cols = [8, 9, 8, 9, 8, 6, 9, 6, 6];
+let obstacle_cols = [8, 9, 8, 9, 8, 1, 9, 1, 1];
 
 function make_obstacle(angle, dist){
 	let o = {
@@ -29,7 +29,7 @@ function draw_obstacle(o){
 	// let bottom_y = game_h/2 + sin(draw_angle) * (o.dist);
 
 	let angle_range = PI/6;
-	let angle_steps = 8;
+	let angle_steps = 10;
 
 	let angle_start = draw_angle - angle_range;
 	let angle_end = draw_angle + angle_range;
@@ -41,8 +41,8 @@ function draw_obstacle(o){
 		let a = (1.0-angle_prc)*angle_start + angle_prc * angle_end;
 
 		let end_pnt = {
-			x : top_x + cos(a) * (o.size - dist_bonus),
-			y : top_y + sin(a) * (o.size - dist_bonus)
+			x : top_x + cos(a) * (o.size - dist_bonus + 2),
+			y : top_y + sin(a) * (o.size - dist_bonus + 2)
 		}
 
 		for (let k=0; k<pix_steps; k++){

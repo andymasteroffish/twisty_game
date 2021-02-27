@@ -42,7 +42,7 @@ function draw_ring(ring) {
 	// fbo.stroke(255);
 	// fbo.strokeWeight(1);
 
-	cur_col = 1;
+	cur_col = 4;
 
 	//fbo.beginShape();
 	let pnts = new Array(num_ring_steps);

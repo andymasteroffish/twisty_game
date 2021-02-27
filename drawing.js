@@ -42,13 +42,19 @@ function pixel_effects_early(){
 				//chance to just turn the pixel off
 				if(random(9)<1)	set_pix(x,y,0);
 
-				//figure out what the next color would be
+				//figure out what the next color would be (if no color is listed for the current value, we go to 0)
 				let next_col = 0;
 				//ring colors
-				if (c==1)	next_col = 2;
-				if (c==2)	next_col = 3;
+				// if (c==4)	next_col = 5;
+				// if (c==5)	next_col = 6;
+				// if (c==6)	next_col = 3;//random(1) < 0.5 ? 7 : 3;
+				// if (c==3)	next_col = 7;
+
+				if (c==4)	next_col = 5;
+				if (c==5)	next_col = 6;
+				if (c==6)	next_col = random(1) < 0.85 ? 7 : 3;
 				if (c==3)	next_col = 7;
-				if (c==7)	next_col = 0;
+				
 				//player colors
 				if (c == 12)	next_col = 13;
 				if (c == 13)	next_col = 14;
@@ -57,9 +63,10 @@ function pixel_effects_early(){
 				if (c == 10)	next_col = 11;
 				if (c == 11)	next_col = 14;
 				//obstacle colors
+				if (c == 1)	next_col = 8;
 				if (c == 8)	next_col = 9;
-				if (c == 9)	next_col = random(1) < 0.1 ? 8 : 6;
-				if (c == 6)	next_col = 7;
+				if (c == 9)	next_col = 2;
+				//if (c == 6)	next_col = 7;
 
 
 				//try to advance and move
