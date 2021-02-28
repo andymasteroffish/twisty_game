@@ -14,11 +14,21 @@ const game_h = 100;
 
 const big_scale = 7;
 
-let debug_show_palette = true;
+let debug_show_palette = false;
+let debug_show_info = false;
 let debug_no_cam_rotate = false;
 let debug_no_effects = false;
+let debug_show_hit_boxes = false;
+
+//recording gameplay
+let recording = false;
+let rec_frames = [];
+let is_exporting_recording = false;
+let export_frame = 0;
+
 
 function setup() {
+
 
 	setup_drawing();
 
@@ -82,10 +92,42 @@ function draw() {
 	draw_game();
 
 	draw_debug();
+
+
+	// if (frameCount > 10 && frameCount < 20){
+	// 	saveCanvas('myCanvas_'+frameCount, 'jpg');
+	// }
+
+	if (recording){
+		console.log("recording "+rec_frames.length);
+		let pic = createImage(game_w, game_h);
+		pic.loadPixels();
+		for (let c = 0; c < game_w; c++) {
+			for (let r = 0; r < game_h; r++) {
+
+				let col = grid[c][r];
+				pic.set(c,r, palette[col]);
+			}
+		}
+		pic.updatePixels();
+		rec_frames.push(pic);
+	}
+
+	if (is_exporting_recording){
+		if (frameCount % 10 == 0){
+			console.log("export "+export_frame);
+			rec_frames[export_frame].save("frame_"+export_frame+".png");
+			export_frame++;
+			if (export_frame >= rec_frames.length){
+				is_exporting_recording = false;
+			}
+		}
+	}
 	
 }
 
 function update_game(){
+
 
 	//move the player
 	player_physics_update(player, ring);
@@ -112,7 +154,7 @@ function update_game(){
 
 		//did the player get smashed?
 		if (hit_check(player, obstacle)){
-			console.log("kill em!");
+			kill_player();
 		}
 	}
 
@@ -124,8 +166,6 @@ function update_game(){
 			particles.splice(i,1);
 		}
 	}
-
-	
 
 	//get our lerp angle for the camera
 	if (!player.doing_flip_jump){
@@ -150,7 +190,14 @@ function update_game(){
 	if (debug_no_cam_rotate){
 		disp_angle = PI/2;
 	}
+}
 
+function kill_player(){
+	//bounce out if they're already dead
+	if (player.is_dead)	return;
+
+	break_player(player);
+	player.is_dead = true;
 }
 
 function draw_game(){
@@ -165,21 +212,28 @@ function draw_game(){
 
 	gems.forEach(gem => {
 		draw_gem(gem);
-		//debug_draw_obj(gem);
 	})
 
 	obstacles.forEach(obs => {
 		draw_obstacle(obs);
-		//debug_draw_obj(gem);
 	})
 
 	particles.forEach(particle => {
 		draw_particle(particle)
 	})
 
-	//debug_draw_obj(player);
 
 	pixel_effects_late();
+
+	if (debug_show_hit_boxes){
+		debug_draw_obj(player);
+		gems.forEach(gem => {
+			debug_draw_obj(gem);
+		})
+		obstacles.forEach(obs => {
+			debug_draw_obj(obs);
+		})
+	}
 
 	grid2screen();
 
@@ -187,15 +241,17 @@ function draw_game(){
 }
 
 function draw_debug(){
-	fill(255);
-	textSize(10);
-	textAlign(LEFT, TOP);
-	let debug_text = "fps:"+floor(frameRate());
-	debug_text += "\nang:"+player.angle;
-	debug_text += "\ndist:"+player.dist;
-	debug_text += "\ngroudned:"+player.is_grounded;
-	debug_text += "\njumping:"+player.doing_flip_jump;
-	text(debug_text, 10,10);
+	if (debug_show_info){
+		fill(255);
+		textSize(10);
+		textAlign(LEFT, TOP);
+		let debug_text = "fps:"+floor(frameRate());
+		debug_text += "\nang:"+player.angle;
+		debug_text += "\ndist:"+player.dist;
+		debug_text += "\ngroudned:"+player.is_grounded;
+		debug_text += "\njumping:"+player.doing_flip_jump;
+		text(debug_text, 10,10);
+	}
 
 
 	//demoing the palette
@@ -221,7 +277,7 @@ function draw_debug(){
 
 function keyPressed(){
 
-	if (!player.doing_flip_jump){
+	if (!player.doing_flip_jump && !player.is_dead){
 		
 		if (keyCode == 37){	//left
 			rotary_input(player, 1);
@@ -242,6 +298,22 @@ function keyPressed(){
 	}
 	if (key == 'e'){
 		debug_no_effects = !debug_no_effects;
+	}
+	if (key == 'h'){
+		debug_show_hit_boxes = !debug_show_hit_boxes;
+	}
+	if (key == 'i'){
+		debug_show_info = !debug_show_info;
+	}
+	if (key == 's'){
+		if (!recording){
+			recording = true;
+		}
+		else{
+			recording = false;
+			is_exporting_recording = true;
+			export_frame = 0;
+		}
 	}
 }
 

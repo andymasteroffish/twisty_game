@@ -24,9 +24,9 @@ function make_ring(){
 
 	for (let i=0; i<5; i++){
 		if (i==1){
-			ring.obstacle_spots.push(i*20);
+			ring.obstacle_spots.push(i*20+4);
 		}else{
-			ring.gem_spots.push(i*20);
+			ring.gem_spots.push(i*20 + 4);
 		}
 	}
 

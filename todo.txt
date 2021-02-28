@@ -1,8 +1,15 @@
 
-[] gravity / falling
+[X] gravity / falling
+[X] jumping
+[X] goals
+[X] obstacles
 
-[] jumping
 
-[] goals
 
-[] obstacles
+Future Goals
+
+collecting a gem needs more weight
+-pulse the player or something
+-maybe lose some velocity
+
+use a shader to blow up the display instead of writing pixels

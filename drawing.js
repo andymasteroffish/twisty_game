@@ -3,6 +3,8 @@ let grid;
 let palette = new Array(16);
 let cur_col = 0;
 
+// Using NA16 PALETTE by Nauris
+// https://lospec.com/palette-list/na16
 function setup_drawing(){
 	palette[0] = color('#1f0e1c');
 	palette[1] = color('#f5edba');
@@ -56,7 +58,7 @@ function pixel_effects_early(){
 				if (c==3)	next_col = 7;
 				
 				//player colors
-				if (c == 12)	next_col = 13;
+				if (c == 12)	next_col = random(1) < 0.65 ? 13 : 12;
 				if (c == 13)	next_col = 14;
 				if (c == 14)	next_col = 15;
 				//gem colors
@@ -211,7 +213,6 @@ function bresenham_circle(center_x, center_y, size, resolution){
 //grabs our small grid and blows it up to screen size
 function grid2screen(){
 	loadPixels();
-	let demo_col = [0,0,0];
 	for (let c = 0; c < game_w; c++) {
 		for (let r = 0; r < game_h; r++) {
 

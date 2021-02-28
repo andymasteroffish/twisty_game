@@ -77,6 +77,4 @@ function break_gem(g){
 	pix.forEach( p => {
 		particles.push( make_particle(p.x, p.y, 0,0, p.col) );
 	})
-
-
 }

@@ -23,8 +23,11 @@ function make_player(){
 		size : 10,
 		hit_x : 0,	//x and y are derived form angle and dist
 		hit_y : 0,
+		draw_x : 0,
+		draw_y : 0,
 		doing_flip_jump : false,
-		flip_jump_gen : null
+		flip_jump_gen : null,
+		is_dead : false
 	}
 
 	return p;
@@ -36,6 +39,7 @@ function rotary_input(player, dir){
 
 
 function player_physics_update(p, ring){
+	if (p.is_dead)	return;
 
 	//if we're in the middle of a flip jump, just do that and bounce out
 	if (p.doing_flip_jump){
@@ -200,25 +204,90 @@ function* do_flip_jump(p) {
 	return null;
 }
 
-function draw_player(player){
+function draw_player(p){
+	if (p.is_dead)	return;
 
 	//get the center of the player
-	let x = game_w/2 + cos(player.angle +(-disp_angle + PI/2)) * player.dist;
-	let y = game_h/2 + sin(player.angle +(-disp_angle + PI/2)) * player.dist;
+	let x = game_w/2 + cos(p.angle +(-disp_angle + PI/2)) * p.dist;
+	let y = game_h/2 + sin(p.angle +(-disp_angle + PI/2)) * p.dist;
+	p.draw_x = x;
+	p.draw_y = y;
+	
 
-	cur_col = 12;
-	bresenham_circle(x,y, player.size/2, 10);
+	let fake_angle = -p.angle  * p.dist * 0.13;
 
-	//spokes
-	let num_spokes = 4;
-	for (let i=0; i<num_spokes; i++){
-		let fake_angle = -player.angle  * player.dist * 0.13;
-		let a =  fake_angle + (TAU/num_spokes) * i -disp_angle;
-		let sx = x + cos(a) * player.size/2;
-		let sy = y + sin(a) * player.size/2;
-		bresenham_line(x,y, sx, sy);
 
+	//get some info for drawing globe lines
+	let selection_angle_base = fake_angle;
+
+	let num_globe_lines = 18;
+	let num_line_sections = 5;
+	for (let d=0; d<num_globe_lines; d++){
+		let prc_angle =  frameCount*0.02 + d * (TAU/num_globe_lines);
+		//decided not to show lines in the back
+		if ((prc_angle%TAU) < PI){
+			let y_prc = 0.5+cos(prc_angle)*0.5;		//1=top, 0=bottom
+			//console.log("y prc "+y_prc);;
+
+			let selection_angle_dist = y_prc * PI;// + fake_angle;
+
+			let start = {
+				x : x + cos(selection_angle_base+selection_angle_dist) * p.size/2,
+				y : y + sin(selection_angle_base+selection_angle_dist) * p.size/2
+			}
+
+			let end = {
+				x : x + cos(selection_angle_base-selection_angle_dist ) * p.size/2,
+				y : y + sin(selection_angle_base-selection_angle_dist) * p.size/2
+			}
+
+			cur_col = d%2==0 ? 12 : 13;
+			bresenham_line(start.x, start.y, end.x, end.y);
+
+		}
+
+		// cur_col = 8;
+		// bresenham_circle(start.x, start.y, 2, 4);
+		// cur_col = 10;
+		// bresenham_circle(end.x, end.y, 2, 4);
 	}
 
+
+	cur_col = 12;
+	bresenham_circle(x,y, p.size/2, 20);
+	
+
+	//recurse_circle(x,y, fake_angle, p.size/2, 0);
+}
+
+function break_player(p){
+	//find all pixels matching our colors near us
+	let pix = get_matching_pic_in_circle(p.draw_x, p.draw_y, p.size/2, [12,13]);
+
+	console.log("player particles: "+pix.length);
+
+	//make them particles
+	pix.forEach( p => {
+		for (let i=0; i<10; i++){
+			particles.push( make_particle(p.x, p.y, random(0,game_w) , random(0,game_h), p.col) );
+		}
+	})
+}
+
+function recurse_circle(x,y, angle, size, depth){
+	
+	//console.log("circle size: "+size);
+	
+
+	if (depth < 5){
+		let push_dist = size * 0.2;
+		let new_x = x + cos(angle) * push_dist;
+		let new_y = y + sin(angle) * push_dist;
+
+		recurse_circle(new_x, new_y, angle*1.1, size*0.8, depth+1);
+	}
+
+	cur_col = depth % 2 == 0 ? 12 : 13;
+	bresenham_circle(x,y, size, 10);
 }
 
