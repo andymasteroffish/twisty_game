@@ -3,7 +3,8 @@ const game_w = 100;
 const game_h = 100;
 const big_scale = 7;
 
-const game_y_offset = 5;
+const game_x_center = game_w/2;
+const game_y_center = game_h/2 + 5;
 
 
 //components
@@ -126,6 +127,7 @@ function draw() {
 	// 	saveCanvas('myCanvas_'+frameCount, 'jpg');
 	// }
 
+	//handle capturing a png sequence
 	if (recording){
 		console.log("recording "+rec_frames.length);
 		let pic = createImage(game_w, game_h);
@@ -139,11 +141,18 @@ function draw() {
 		}
 		pic.updatePixels();
 		rec_frames.push(pic);
+
+		//photoshop caps me at 500
+		if (rec_frames.length > 500){
+			recording = false;
+			is_exporting_recording = true;
+			export_frame = 0;
+		}
 	}
 
 	if (is_exporting_recording){
-		if (frameCount % 10 == 0){
-			console.log("export "+export_frame);
+		if (frameCount % 6 == 0){
+			console.log("export "+export_frame+ " / "+rec_frames.length);
 			rec_frames[export_frame].save("frame_"+export_frame+".png");
 			export_frame++;
 			if (export_frame >= rec_frames.length){
@@ -405,8 +414,8 @@ function keyPressed(){
 
 function update_hit_pos(obj){
 	//get the center of the object
-	obj.hit_x = game_w/2 + cos(obj.angle) * (obj.dist-obj.size/2);
-	obj.hit_y = game_h/2 + sin(obj.angle) * (obj.dist-obj.size/2);
+	obj.hit_x = game_x_center + cos(obj.angle) * (obj.dist-obj.size/2);
+	obj.hit_y = game_y_center + sin(obj.angle) * (obj.dist-obj.size/2);
 }
 
 function hit_check(obj1, obj2, scale){

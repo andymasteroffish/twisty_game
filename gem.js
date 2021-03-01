@@ -23,8 +23,8 @@ function draw_gem(g){
 
 	let draw_angle = g.angle +(-disp_angle + PI/2);
 
-	let center_x = game_w/2 + cos(draw_angle) * (g.dist-g.size/2);
-	let center_y = game_h/2 + sin(draw_angle) * (g.dist-g.size/2);
+	let center_x = game_x_center + cos(draw_angle) * (g.dist-g.size/2);
+	let center_y = game_y_center + sin(draw_angle) * (g.dist-g.size/2);
 	g.draw_x = center_x;
 	g.draw_y = center_y;
 

@@ -5,7 +5,7 @@
 [X] obstacles
 	[] have obstacles point based on the slope of their point on the ring
 
-[] timer bar
+[X] timer bar
 
 
 
@@ -19,4 +19,8 @@ use a shader to blow up the display instead of writing pixels
 
 
 
+
+
+
+Jane gets $40,090.00
 

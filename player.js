@@ -81,8 +81,8 @@ function player_physics_update(p, ring){
 	dist -= p.size/2;
 
 	//set the hit pos
-	p.hit_x = game_w/2 + cos(p.angle) * (p.dist);
-	p.hit_y = game_h/2 + sin(p.angle) * (p.dist);
+	p.hit_x = game_x_center + cos(p.angle) * (p.dist);
+	p.hit_y = game_y_center + sin(p.angle) * (p.dist);
 
 	//apply gravity
 	p.dist_vel += gravity;
@@ -192,8 +192,8 @@ function* do_flip_jump(p) {
 		disp_angle = (1.0-cam_prc)*start_disp_angle + cam_prc * end_disp_angle;
 
 		//set the hit pos
-		p.hit_x = game_w/2 + cos(p.angle) * (p.dist);
-		p.hit_y = game_h/2 + sin(p.angle) * (p.dist);
+		p.hit_x = game_x_center + cos(p.angle) * (p.dist);
+		p.hit_y = game_y_center + sin(p.angle) * (p.dist);
 
 		yield null;
 	}
@@ -215,8 +215,8 @@ function draw_player(p){
 	if (p.is_dead)	return;
 
 	//get the center of the player
-	let x = game_w/2 + cos(p.angle +(-disp_angle + PI/2)) * p.dist;
-	let y = game_h/2 + sin(p.angle +(-disp_angle + PI/2)) * p.dist;
+	let x = game_x_center+ cos(p.angle +(-disp_angle + PI/2)) * p.dist;
+	let y = game_y_center + sin(p.angle +(-disp_angle + PI/2)) * p.dist;
 	p.draw_x = x;
 	p.draw_y = y;
 	

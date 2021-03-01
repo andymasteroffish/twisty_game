@@ -16,7 +16,7 @@ function draw_timer_bar(){
 
 	//bounds
 	let padding_x = 10;
-	let y_top = 3;
+	let y_top = 4;
 	let height = 4;
 
 	let x_start = padding_x;

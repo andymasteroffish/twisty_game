@@ -24,8 +24,8 @@ function draw_obstacle(o){
 	let dist_bonus = sin(frameCount*0.1) * 2 - 1;
 	let top_dist = (o.dist - o.size) + dist_bonus;
 
-	let top_x = game_w/2 + cos(draw_angle) * top_dist;
-	let top_y = game_h/2 + sin(draw_angle) * top_dist;
+	let top_x = game_x_center + cos(draw_angle) * top_dist;
+	let top_y = game_y_center + sin(draw_angle) * top_dist;
 
 
 	let angle_range = PI/6;

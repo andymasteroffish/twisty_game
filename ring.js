@@ -64,8 +64,8 @@ function draw_ring(ring, scale) {
 
 	for (let i=0; i<num_ring_steps; i++){
 		let angle = i * ring_steps_2_radians + (-disp_angle + PI/2);
-		let x = game_w/2 + cos(angle) * ring.dists[i] * scale;
-		let y = game_h/2 + sin(angle) * ring.dists[i] * scale;
+		let x = game_x_center + cos(angle) * ring.dists[i] * scale;
+		let y = game_y_center + sin(angle) * ring.dists[i] * scale;
 		pnts[i] = {x:x, y:y};
 	}
 
