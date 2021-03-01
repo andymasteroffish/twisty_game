@@ -9,12 +9,19 @@ const max_step_height = 5;
 const gravity = 0.03;
 const dist_to_snap_to_ground = 0.1;
 
+const player_level_start_dist = 10;
+
 const flip_jump_time_per_pixel = 1;
+
+const hit_padding_gems = 0.8;
+const hit_padding_obstacles = 0.7;
+
+const immune_on_level_start = 70;
 
 function make_player(){
 	let p = {
 		angle : PI,
-		dist: 0,
+		dist: player_level_start_dist,
 		speed : PI*0.01,
 		angle_vel : 0,
 		dist_vel : 0,
@@ -254,7 +261,7 @@ function draw_player(p){
 
 
 	cur_col = 12;
-	bresenham_circle(x,y, p.size/2, 20);
+	//bresenham_circle(x,y, p.size/2, 20);
 	
 
 	//recurse_circle(x,y, fake_angle, p.size/2, 0);

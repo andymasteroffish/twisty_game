@@ -1,19 +1,37 @@
+//game values
+const game_w = 100;
+const game_h = 100;
+const big_scale = 7;
+
+const game_y_offset = 5;
+
+
+//components
 let player;
 let ring;
 let gems = [];
 let obstacles = [];
 let particles = [];
 
+//timer that kills the player
+let life_timer;
+const max_life_timer = 800;
+const time_bonus_per_gem = 50;
+
+//level state
+let cur_level = 0;
+let level_trans_gen = null;
+let doing_level_trans = false;
+
+let level_timer = 0;
+
+//gamera
 let disp_angle = 0;
 let disp_angle_lerp = 0.03;
 
 
 
-const game_w = 100;
-const game_h = 100;
-
-const big_scale = 7;
-
+//debug toggles
 let debug_show_palette = false;
 let debug_show_info = false;
 let debug_no_cam_rotate = false;
@@ -43,26 +61,35 @@ function setup() {
 	//make our window
 	createCanvas(game_w*big_scale, game_h*big_scale);
 
-	//create some game objects
-	//ring = make_ring();
+
+	clear_grid();
+
+	reset_game();
+	
+}
+
+function reset_game(){
+	cur_level = 1;
+
+	life_timer = max_life_timer;
+
 	player = make_player();
 
 	disp_angle = player.angle;
 	if (debug_no_cam_rotate)	disp_angle = PI/2;
 
-	clear_grid();
-
-	reset_level();
-	
+	//start the level
+	reset_level( make_ring(cur_level) );
 }
 
-function reset_level(){
-	gems = [];
+function reset_level(_ring){
+	
+	ring = _ring;
 
-	//get the level shape
-	ring = make_ring();
+	level_timer = 0;
 
 	//populate gems
+	gems = [];
 	ring.gem_spots.forEach(spot =>{
 		let angle = angle_at_ring_pos(spot);
 		let dist = ring.dists[spot];
@@ -71,6 +98,7 @@ function reset_level(){
 	})
 
 	//populate obstacles
+	obstacles = [];
 	ring.obstacle_spots.forEach(spot =>{
 		let angle = angle_at_ring_pos(spot);
 		let dist = ring.dists[spot];
@@ -127,7 +155,27 @@ function draw() {
 }
 
 function update_game(){
+	level_timer++;
 
+	//update particles
+	for(let i=particles.length-1; i>=0; i--){
+		update_particle(particles[i]);
+
+		if (particles[i].kill_me){
+			particles.splice(i,1);
+		}
+	}
+
+	//if we're doing the level transition, don't do anything else
+	if (doing_level_trans){
+		return;
+	}
+
+	//reduce life total
+	life_timer--;
+	if (life_timer <= 0){
+		kill_player();
+	}
 
 	//move the player
 	player_physics_update(player, ring);
@@ -139,10 +187,11 @@ function update_game(){
 		update_hit_pos(gem);
 
 		//did the player collect?
-		if (hit_check(player, gem)){
+		if (level_timer > immune_on_level_start/2 && hit_check(player, gem, hit_padding_gems)){
 			console.log("got em!");
 			break_gem(gem);
 			gems.splice(i,1);
+			add_time(time_bonus_per_gem);
 		}
 	}
 
@@ -153,19 +202,18 @@ function update_game(){
 		update_hit_pos(obstacle);
 
 		//did the player get smashed?
-		if (hit_check(player, obstacle)){
-			kill_player();
+		if (level_timer > immune_on_level_start){
+			if (hit_check(player, obstacle, hit_padding_obstacles)){
+				kill_player();
+			}
 		}
 	}
 
-	//update particles
-	for(let i=particles.length-1; i>=0; i--){
-		update_particle(particles[i]);
-
-		if (particles[i].kill_me){
-			particles.splice(i,1);
-		}
+	//did they collect all the gems?
+	if (gems.length == 0){
+		trigger_level_end();
 	}
+	
 
 	//get our lerp angle for the camera
 	if (!player.doing_flip_jump){
@@ -200,15 +248,42 @@ function kill_player(){
 	player.is_dead = true;
 }
 
-function draw_game(){
+function trigger_level_end(){
+	obstacles = [];
 	
+	console.log("end level "+cur_level);
+	cur_level++;
+
+	doing_level_trans = true;
+	level_trans_gen = do_level_transition();
+}
+
+function add_time(val){
+	life_timer += val;
+	if (life_timer > max_life_timer){
+		life_timer = max_life_timer;
+	}
+}
+
+function draw_game(){
 
 	if (!debug_no_effects) 	pixel_effects_early();
 	else 					clear_grid();
 
-	draw_ring(ring);
+	//if we're doing the level transition, do that and nothing else
+	//doing this in draw so that it can draw in the coroutine
+	if (doing_level_trans){
+		level_trans_gen.next();
+	}
+	//only draw the level normally if we're not transitioning
+	else{
+		cur_col = 4;
+		draw_ring(ring, 1);
+	}
 
-	draw_player(player);
+	if (level_timer > immune_on_level_start || frameCount % 12 < 10 ){
+		draw_player(player);
+	}
 
 	gems.forEach(gem => {
 		draw_gem(gem);
@@ -222,6 +297,9 @@ function draw_game(){
 		draw_particle(particle)
 	})
 
+	if (!player.is_dead){
+		draw_timer_bar();
+	}
 
 	pixel_effects_late();
 
@@ -261,8 +339,8 @@ function draw_debug(){
 		for (let c=0; c<4; c++){
 			for (let r=0; r<4; r++){
 				let index = r*4 + c;
-				let x = width - box_size*4 + c*box_size;
-				let y = box_size*r;
+				let x = box_size*c;
+				let y = box_size*r + 200;
 				noStroke();
 				fill(palette[index]);
 				rect(x,y,box_size,box_size);
@@ -293,6 +371,13 @@ function keyPressed(){
 		//console.log(keyCode);
 	}
 
+	if (key == 't'){
+		gems = [];
+		trigger_level_end();
+	}
+	if (key == 'r'){
+		reset_game();
+	}
 	if (key == 'p'){
 		debug_show_palette = !debug_show_palette;
 	}
@@ -324,8 +409,8 @@ function update_hit_pos(obj){
 	obj.hit_y = game_h/2 + sin(obj.angle) * (obj.dist-obj.size/2);
 }
 
-function hit_check(obj1, obj2){
-	return dist(obj1.hit_x, obj1.hit_y, obj2.hit_x, obj2.hit_y) < (obj1.size + obj2.size)/2;
+function hit_check(obj1, obj2, scale){
+	return dist(obj1.hit_x, obj1.hit_y, obj2.hit_x, obj2.hit_y) < ((obj1.size + obj2.size)/2)*scale;
 }
 
 function dist_sq(x1,y1, x2,y2){

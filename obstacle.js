@@ -7,6 +7,7 @@ function make_obstacle(angle, dist){
 		size : 10,
 		hit_x : 0,		//x and y are derived	
 		hit_y : 0,
+		timer : 0
 	}
 
 	return o;
@@ -14,6 +15,7 @@ function make_obstacle(angle, dist){
 
 
 function draw_obstacle(o){
+	o.timer++;
 
 	cur_col = obstacle_cols[0];
 
@@ -25,8 +27,6 @@ function draw_obstacle(o){
 	let top_x = game_w/2 + cos(draw_angle) * top_dist;
 	let top_y = game_h/2 + sin(draw_angle) * top_dist;
 
-	// let bottom_x = game_w/2 + cos(draw_angle) * (o.dist);
-	// let bottom_y = game_h/2 + sin(draw_angle) * (o.dist);
 
 	let angle_range = PI/6;
 	let angle_steps = 10;
@@ -35,6 +35,13 @@ function draw_obstacle(o){
 	let angle_end = draw_angle + angle_range;
 
 	let pix_steps = 10;
+	let pix_start = 0;
+
+	if (o.timer < spawn_growth_time){
+		let prc = o.timer / spawn_growth_time;
+		angle_steps =floor(angle_steps * prc);
+		pix_start = floor(pix_steps*(1.0-prc));
+	}
 
 	for (let i=0; i<angle_steps; i++){
 		let angle_prc = i / angle_steps;
@@ -45,7 +52,7 @@ function draw_obstacle(o){
 			y : top_y + sin(a) * (o.size - dist_bonus + 2)
 		}
 
-		for (let k=0; k<pix_steps; k++){
+		for (let k=pix_start; k<pix_steps; k++){
 			let prc = 1.0- k/pix_steps;
 			let p_x = floor( (1.0-prc)*end_pnt.x + prc*top_x );
 			let p_y = floor( (1.0-prc)*end_pnt.y + prc*top_y );

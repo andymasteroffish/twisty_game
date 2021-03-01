@@ -3,6 +3,9 @@
 [X] jumping
 [X] goals
 [X] obstacles
+	[] have obstacles point based on the slope of their point on the ring
+
+[] timer bar
 
 
 
@@ -13,3 +16,7 @@ collecting a gem needs more weight
 -maybe lose some velocity
 
 use a shader to blow up the display instead of writing pixels
+
+
+
+

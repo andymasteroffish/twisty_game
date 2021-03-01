@@ -176,7 +176,7 @@ function bresenham_line(x0, y0, x1, y1) {
 
 	while(true) {
 
-		grid[x0][y0] = cur_col;
+		set_pix(x0,y0, cur_col);
 
 		if ((x0 === x1) && (y0 === y1)) break;
 		var e2 = 2*err;

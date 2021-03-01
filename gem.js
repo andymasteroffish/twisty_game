@@ -1,4 +1,5 @@
-let gem_cols = [10, 11];
+const gem_cols = [10, 11];
+const spawn_growth_time = 40;
 
 function make_gem(angle, dist){
 	let gem = {
@@ -8,13 +9,16 @@ function make_gem(angle, dist){
 		hit_x : 0,		//x and y are derived	
 		hit_y : 0,
 		draw_x : 0,
-		draw_y : 0
+		draw_y : 0,
+		timer : 0
 	}
 
 	return gem;
 }
 
 function draw_gem(g){
+	g.timer++;
+
 	cur_col = 10;
 
 	let draw_angle = g.angle +(-disp_angle + PI/2);
@@ -28,6 +32,13 @@ function draw_gem(g){
 
 	let gem_h = 6;
 	let gem_w = 5;
+
+	if (g.timer < spawn_growth_time){
+		let prc = g.timer / spawn_growth_time;
+		gem_h *= prc;
+		gem_w *= prc;
+	}
+
 	let far_pnt = {
 		x : center_x + cos(draw_angle) * gem_h,
 		y : center_y + sin(draw_angle) * gem_h
@@ -73,8 +84,10 @@ function break_gem(g){
 	//find all pixels matching our colors near us
 	let pix = get_matching_pic_in_circle(g.draw_x, g.draw_y, g.size/2, gem_cols);
 
+	let time_val = time_bonus_per_gem / pix.length ;
+
 	//make them particles
 	pix.forEach( p => {
-		particles.push( make_particle(p.x, p.y, 0,0, p.col) );
+		particles.push( make_particle(p.x, p.y, cur_timer_end_x, random(3,8), p.col, time_val) );
 	})
 }
