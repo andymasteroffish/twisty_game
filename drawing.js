@@ -6,6 +6,8 @@ let cur_col = 0;
 
 let paused_img;
 
+let cur_pause_angle = 0;
+
 function drawing_preload(){
 	paused_img = loadImage('pic/paused.png');
 	console.log(paused_img)
@@ -70,8 +72,11 @@ function setup_grid(){
 			pause_grid[x][y] = {
 				c : 0,
 				a : atan2(y-game_w/2, x-game_h/2),
-				d : dist(x,y, game_w/2, game_h/2)
+				d : dist(x,y, game_w/2, game_h/2),
+				v : 99999 
 			}
+
+			pause_grid[x][y].v -= pause_grid[x][y].d*0.1;
 		}
 	}
 }
@@ -139,6 +144,12 @@ function pixel_effects_late() {
 }
 
 function set_pause_grid(){
+	cur_pause_angle += 0.1;
+	if (cur_pause_angle >= PI)	cur_pause_angle -= TAU;
+	let angle_dist_to_advance = 1.5;
+	let angle_dist_to_fade = 2.1;
+	let angle_dist_to_clear = 2.5;
+
 	let p_cols = [1,1,1,4,12,12,12];
 	paused_img.loadPixels();
 	for (let x=0; x<game_w; x++){
@@ -150,8 +161,28 @@ function set_pause_grid(){
 
 				let n1 = pause_grid[x][y].a*0.41;
 				let n2 = 99999 + pause_grid[x][y].d*0.1 - frameCount*0.05;
+
+				let ang_dist = Math.min( 
+					abs(cur_pause_angle - pause_grid[x][y].a),
+					Math.min(abs(cur_pause_angle+TAU - pause_grid[x][y].a),
+						abs(cur_pause_angle-TAU - pause_grid[x][y].a)
+					)
+				);
+
+				if (ang_dist < angle_dist_to_advance){
+					let prc = 1.0-ang_dist/angle_dist_to_advance;
+					pause_grid[x][y].v -= prc * 0.1;
+				}
+				n2 = pause_grid[x][y].v;
 				let col_index = noise(n1, n2) * p_cols.length;
 				pause_grid[x][y].c = p_cols[floor(col_index)];
+
+				if (ang_dist > angle_dist_to_fade){
+					pause_grid[x][y].c = dark_palette[pause_grid[x][y].c];
+				}
+				if (ang_dist > angle_dist_to_clear){
+					pause_grid[x][y].c = dark_palette[grid[x][y]];
+				}
 			}
 		}
 	}
