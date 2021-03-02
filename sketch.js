@@ -14,6 +14,8 @@ let gems = [];
 let obstacles = [];
 let particles = [];
 
+let is_paused = false;
+
 //timer that kills the player
 let life_timer;
 const max_life_timer = 800;
@@ -34,6 +36,7 @@ let disp_angle_lerp = 0.03;
 
 //debug toggles
 let debug_show_palette = false;
+let debug_show_dark_palette = false;
 let debug_show_info = false;
 let debug_no_cam_rotate = false;
 let debug_no_effects = false;
@@ -45,6 +48,9 @@ let rec_frames = [];
 let is_exporting_recording = false;
 let export_frame = 0;
 
+function preload(){
+	drawing_preload();
+}
 
 function setup() {
 
@@ -53,10 +59,7 @@ function setup() {
 
 	pixelDensity(1.0);
 
-	grid = new Array(game_w);
-	for (let i=0; i<game_w; i++){
-		grid[i] = new Array(game_h);
-	}
+	setup_grid();
 	
 
 	//make our window
@@ -164,6 +167,9 @@ function draw() {
 }
 
 function update_game(){
+	if (is_paused)	return;
+
+	//increase the timer
 	level_timer++;
 
 	//update particles
@@ -276,41 +282,44 @@ function add_time(val){
 
 function draw_game(){
 
-	if (!debug_no_effects) 	pixel_effects_early();
-	else 					clear_grid();
+	if (!is_paused){
 
-	//if we're doing the level transition, do that and nothing else
-	//doing this in draw so that it can draw in the coroutine
-	if (doing_level_trans){
-		level_trans_gen.next();
+		if (!debug_no_effects) 	pixel_effects_early();
+		else 					clear_grid();
+
+		//if we're doing the level transition, do that and nothing else
+		//doing this in draw so that it can draw in the coroutine
+		if (doing_level_trans){
+			level_trans_gen.next();
+		}
+		//only draw the level normally if we're not transitioning
+		else{
+			cur_col = 4;
+			draw_ring(ring, 1);
+		}
+
+		if (level_timer > immune_on_level_start || frameCount % 12 < 10 ){
+			draw_player(player);
+		}
+
+		gems.forEach(gem => {
+			draw_gem(gem);
+		})
+
+		obstacles.forEach(obs => {
+			draw_obstacle(obs);
+		})
+
+		particles.forEach(particle => {
+			draw_particle(particle)
+		})
+
+		if (!player.is_dead){
+			draw_timer_bar();
+		}
 	}
-	//only draw the level normally if we're not transitioning
-	else{
-		cur_col = 4;
-		draw_ring(ring, 1);
-	}
 
-	if (level_timer > immune_on_level_start || frameCount % 12 < 10 ){
-		draw_player(player);
-	}
-
-	gems.forEach(gem => {
-		draw_gem(gem);
-	})
-
-	obstacles.forEach(obs => {
-		draw_obstacle(obs);
-	})
-
-	particles.forEach(particle => {
-		draw_particle(particle)
-	})
-
-	if (!player.is_dead){
-		draw_timer_bar();
-	}
-
-	pixel_effects_late();
+	//pixel_effects_late();
 
 	if (debug_show_hit_boxes){
 		debug_draw_obj(player);
@@ -320,6 +329,10 @@ function draw_game(){
 		obstacles.forEach(obs => {
 			debug_draw_obj(obs);
 		})
+	}
+
+	if (is_paused){
+		set_pause_grid();
 	}
 
 	grid2screen();
@@ -352,6 +365,7 @@ function draw_debug(){
 				let y = box_size*r + 200;
 				noStroke();
 				fill(palette[index]);
+				if (debug_show_dark_palette)	fill(palette[dark_palette[index]]);
 				rect(x,y,box_size,box_size);
 				fill(0)
 				text(index, x+box_size/2, y+box_size/2);
@@ -377,7 +391,11 @@ function keyPressed(){
 			start_flip_jump(player);
 		}
 
-		//console.log(keyCode);
+		console.log(keyCode);
+	}
+
+	if (keyCode == 88){	//X
+		is_paused = !is_paused;
 	}
 
 	if (key == 't'){
@@ -389,6 +407,9 @@ function keyPressed(){
 	}
 	if (key == 'p'){
 		debug_show_palette = !debug_show_palette;
+	}
+	if (key == 'd'){
+		debug_show_dark_palette = !debug_show_dark_palette;
 	}
 	if (key == 'e'){
 		debug_no_effects = !debug_no_effects;

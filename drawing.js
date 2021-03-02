@@ -1,7 +1,15 @@
-let grid;
+let grid, pause_grid;
 
 let palette = new Array(16);
+let dark_palette = new Array(16);
 let cur_col = 0;
+
+let paused_img;
+
+function drawing_preload(){
+	paused_img = loadImage('pic/paused.png');
+	console.log(paused_img)
+}
 
 // Using NA16 PALETTE by Nauris
 // https://lospec.com/palette-list/na16
@@ -25,6 +33,47 @@ function setup_drawing(){
 	palette[13] = color('#34859d');
 	palette[14] = color('#17434b');
 	palette[15] = color('#1f0e1c');
+
+
+	dark_palette[0] = 0;
+	dark_palette[1] = 2;
+	dark_palette[2] = 3;
+	dark_palette[3] = 7;
+
+	dark_palette[4] = 5;
+	dark_palette[5] = 7;
+	dark_palette[6] = 7;
+	dark_palette[7] = 15;
+
+	dark_palette[8] = 9;
+	dark_palette[9] = 3;
+	dark_palette[10] = 11;
+	dark_palette[11] = 14;
+
+	dark_palette[12] = 13;
+	dark_palette[13] = 14;
+	dark_palette[14] = 15;
+	dark_palette[15] = 0;
+}
+
+function setup_grid(){
+
+	grid = new Array(game_w);
+	for (let i=0; i<game_w; i++){
+		grid[i] = new Array(game_h);
+	}
+
+	pause_grid = new Array(game_w);
+	for (let x=0; x<game_w; x++){
+		pause_grid[x] = new Array(game_h);
+		for (let y=0; y<game_h; y++){
+			pause_grid[x][y] = {
+				c : 0,
+				a : atan2(y-game_w/2, x-game_h/2),
+				d : dist(x,y, game_w/2, game_h/2)
+			}
+		}
+	}
 }
 
 function clear_grid() {
@@ -85,37 +134,25 @@ function pixel_effects_early(){
 function pixel_effects_late() {
 	for (let x=0; x<game_w; x++){
 		for (let y=0; y<game_h; y++){
-			if (y<game_h){
+		}
+	}
+}
 
-				// let c = grid[x][y];
-				// if (c>0){
-				// 	if(random(9)<1)	grid[x][y]=0;
-				// 	grid[x-1+floor(random(3))][y-floor(random(2))] = (c+1)%7
-				// 	if(random(9)<2 && c>1)	grid[x][y-3] = c
-				// }
-				// let c = grid[x][y];
-				// if (c>1){
-				// 	if(c!=2 || random(9)<1)	grid[x][y]=0;
-				// 	grid[x-1+floor(random(3))][y-floor(random(2))] = (c+1)%7
-				// 	if(random(9)<2 && c>1)	grid[x][y-3] = c
-				// }
+function set_pause_grid(){
+	let p_cols = [1,1,1,4,12,12,12];
+	paused_img.loadPixels();
+	for (let x=0; x<game_w; x++){
+		for (let y=0; y<game_h; y++){
+			pause_grid[x][y].c = dark_palette[grid[x][y]];
 
+			let index = ((y*game_w) + x) * 4;
+			if (paused_img.pixels[index] > 150){
 
-
-
-			// c=pget(x,y)
-			// if c>1 then
-			// 	if(c!=2 or r(9)<1)	p(x,y,0)
-			// 	p( x-1+r(3), y-r(2), (c+1)%7)
-			// 	if(r(9)<2 and c>1)	p(x,y-3,c)
-			// end
-
-				//glow on the ring
-				// if (grid[x][y] == 0 && grid[x][y+1] == 1){
-				// 	grid[x][y] = 3;
-				// }
+				let n1 = pause_grid[x][y].a*0.41;
+				let n2 = 99999 + pause_grid[x][y].d*0.1 - frameCount*0.05;
+				let col_index = noise(n1, n2) * p_cols.length;
+				pause_grid[x][y].c = p_cols[floor(col_index)];
 			}
-			
 		}
 	}
 }
@@ -217,6 +254,9 @@ function grid2screen(){
 		for (let r = 0; r < game_h; r++) {
 
 			let col = grid[c][r];
+			if (is_paused){
+				col = pause_grid[c][r].c;
+			}
 
 			//set the full image
 			for (let x=c*big_scale; x<(c+1)*big_scale; x++){

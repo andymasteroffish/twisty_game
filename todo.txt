@@ -21,6 +21,3 @@ use a shader to blow up the display instead of writing pixels
 
 
 
-
-Jane gets $40,090.00
-
