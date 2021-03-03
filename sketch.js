@@ -28,11 +28,13 @@ let doing_level_trans = false;
 
 let level_timer = 0;
 
+//game state
+let state;
+
+
 //gamera
 let disp_angle = 0;
 let disp_angle_lerp = 0.03;
-
-
 
 //debug toggles
 let debug_show_palette = false;
@@ -56,23 +58,33 @@ function setup() {
 
 
 	setup_drawing();
+	
 
 	pixelDensity(1.0);
 
 	setup_grid();
 	
-
 	//make our window
 	createCanvas(game_w*big_scale, game_h*big_scale);
 
-
 	clear_grid();
 
-	reset_game();
+	go_to_title();
+	//reset_game();
 	
 }
 
+function go_to_title(){
+	setup_title();
+	state = "title";
+	is_paused = false;
+	title_selector = 0;
+}
+
 function reset_game(){
+	console.log("RESET");
+	state = "game";
+
 	cur_level = 1;
 
 	life_timer = max_life_timer;
@@ -107,7 +119,6 @@ function reset_level(_ring){
 		let angle = angle_at_ring_pos(spot);
 		let dist = ring.dists[spot];
 		let obstacle = make_obstacle(angle, dist);
-		console.log(obstacle)
 		obstacles.push(obstacle);
 	})
 
@@ -119,9 +130,18 @@ function reset_level(_ring){
 function draw() {
 	background(230);
 
-	update_game();
+	if (state == "title"){
+		draw_title();
+	}
 
-	draw_game();
+	if (state == "instructions"){
+		draw_instructions();
+	}
+
+	if (state == "game"){
+		update_game();
+		draw_game();
+	}
 
 	draw_debug();
 
@@ -336,12 +356,10 @@ function draw_game(){
 	}
 
 	grid2screen();
-
-	
 }
 
 function draw_debug(){
-	if (debug_show_info){
+	if (debug_show_info && state == "game"){
 		fill(255);
 		textSize(10);
 		textAlign(LEFT, TOP);
@@ -362,7 +380,7 @@ function draw_debug(){
 			for (let r=0; r<4; r++){
 				let index = r*4 + c;
 				let x = box_size*c;
-				let y = box_size*r + 200;
+				let y = box_size*r ;
 				noStroke();
 				fill(palette[index]);
 				if (debug_show_dark_palette)	fill(palette[dark_palette[index]]);
@@ -378,24 +396,49 @@ function draw_debug(){
 
 function keyPressed(){
 
-	if (!player.doing_flip_jump && !player.is_dead){
-		
-		if (keyCode == 37){	//left
-			rotary_input(player, 1);
-		}
-		if (keyCode == 39){	//right
-			rotary_input(player, -1);
+	if (state == "game"){
+		if (!player.doing_flip_jump && !player.is_dead){
+			
+			if (keyCode == 37){	//left
+				rotary_input(player, 1);
+			}
+			if (keyCode == 39){	//right
+				rotary_input(player, -1);
+			}
+
+			if (keyCode == 90){	//Z
+				start_flip_jump(player);
+			}
+
+			console.log(keyCode);
 		}
 
-		if (keyCode == 90){	//Z
-			start_flip_jump(player);
+		if (keyCode == 88){	//X
+			is_paused = !is_paused;
 		}
-
-		console.log(keyCode);
 	}
 
-	if (keyCode == 88){	//X
-		is_paused = !is_paused;
+	else if (state == "title"){
+		if (keyCode == 37){	//left
+			title_selector = 0;
+		}
+		if (keyCode == 39){	//right
+			title_selector = 1;
+		}
+		if (keyCode == 90 || keyCode == 88){	//Z or X
+			if (title_selector == 0){
+				reset_game();
+			}
+			if (title_selector == 1){
+				state = "instructions";
+			}
+		}
+	}
+
+	else if (state == "instructions"){
+		if (keyCode == 90 || keyCode == 88){
+			go_to_title();
+		}
 	}
 
 	if (key == 't'){

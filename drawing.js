@@ -10,6 +10,8 @@ let cur_pause_angle = 0;
 
 function drawing_preload(){
 	paused_img = loadImage('pic/paused.png');
+	title_img = loadImage('pic/title.png');
+	instructions_img = loadImage('pic/instructions.png');
 	console.log(paused_img)
 }
 
@@ -123,6 +125,10 @@ function pixel_effects_early(){
 				if (c == 8)	next_col = 9;
 				if (c == 9)	next_col = 2;
 				//if (c == 6)	next_col = 7;
+
+				if (state == "instructions"){
+					if (c == 12)	next_col = 5;
+				}
 
 
 				//try to advance and move

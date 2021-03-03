@@ -7,6 +7,14 @@
 
 [X] timer bar
 
+[] high score
+
+[] title screen
+[] game over screen with score
+
+[] level gen
+
+[] instructions / credits
 
 
 Future Goals
