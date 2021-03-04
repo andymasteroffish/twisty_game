@@ -10,7 +10,9 @@
 [] high score
 
 [] title screen
+
 [] game over screen with score
+	[] have level burst apart after the player does
 
 [] level gen
 

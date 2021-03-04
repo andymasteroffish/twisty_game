@@ -129,6 +129,7 @@ function reset_level(_ring){
 
 function draw() {
 	background(230);
+	clear_text_grid();
 
 	if (state == "title"){
 		draw_title();
@@ -144,6 +145,10 @@ function draw() {
 	}
 
 	draw_debug();
+
+
+	pixel_effects_late();
+	grid2screen();
 
 
 	// if (frameCount > 10 && frameCount < 20){
@@ -339,7 +344,6 @@ function draw_game(){
 		}
 	}
 
-	//pixel_effects_late();
 
 	if (debug_show_hit_boxes){
 		debug_draw_obj(player);
@@ -355,7 +359,6 @@ function draw_game(){
 		set_pause_grid();
 	}
 
-	grid2screen();
 }
 
 function draw_debug(){

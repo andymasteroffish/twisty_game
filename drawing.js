@@ -1,4 +1,4 @@
-let grid, pause_grid;
+let grid, pause_grid, text_grid;
 
 let palette = new Array(16);
 let dark_palette = new Array(16);
@@ -6,12 +6,19 @@ let cur_col = 0;
 
 let paused_img;
 
+let num_img = new Array(10);
+
 let cur_pause_angle = 0;
 
 function drawing_preload(){
 	paused_img = loadImage('pic/paused.png');
 	title_img = loadImage('pic/title.png');
 	instructions_img = loadImage('pic/instructions.png');
+
+	for (let i=0; i<10; i++){
+		num_img[i] = loadImage('pic/num/num'+i.toString()+".png");
+	}
+
 	console.log(paused_img)
 }
 
@@ -58,6 +65,10 @@ function setup_drawing(){
 	dark_palette[13] = 14;
 	dark_palette[14] = 15;
 	dark_palette[15] = 0;
+
+	for (let i=0; i<10; i++){
+		num_img[i].loadPixels();
+	}
 }
 
 function setup_grid(){
@@ -65,6 +76,11 @@ function setup_grid(){
 	grid = new Array(game_w);
 	for (let i=0; i<game_w; i++){
 		grid[i] = new Array(game_h);
+	}
+
+	text_grid = new Array(game_w);
+	for (let i=0; i<game_w; i++){
+		text_grid[i] = new Array(game_h);
 	}
 
 	pause_grid = new Array(game_w);
@@ -87,6 +103,14 @@ function clear_grid() {
 	for (let x=0; x<game_w; x++){
 		for (let y=0; y<game_h; y++){
 			grid[x][y] = 0;
+		}
+	}
+}
+
+function clear_text_grid() {
+	for (let x=0; x<game_w; x++){
+		for (let y=0; y<game_h; y++){
+			text_grid[x][y] = 0;
 		}
 	}
 }
@@ -132,7 +156,9 @@ function pixel_effects_early(){
 
 
 				//try to advance and move
-				set_pix(x-1+floor(random(3)), y-floor(random(2)), next_col);
+				if (text_grid[x][y] == 0){
+					set_pix(x-1+floor(random(3)), y-floor(random(2)), next_col);
+				}
 				
 
 				//and possibly jump up
@@ -145,6 +171,27 @@ function pixel_effects_early(){
 function pixel_effects_late() {
 	for (let x=0; x<game_w; x++){
 		for (let y=0; y<game_h; y++){
+
+			//transfer the text grid
+			if (text_grid[x][y] != 0){
+				grid[x][y] = text_grid[x][y];
+
+				//get neighbors to add a little border
+				let start_x = Math.max(0,x-1);
+				let end_x = Math.min(game_w-1,x+1);
+				let start_y = Math.max(0,y-1);
+				let end_y = Math.min(game_h-1,y+1);
+
+				for (let c=start_x; c<=end_x; c++){
+					for (let r=start_y; r<=end_y; r++){
+						if (text_grid[c][r] == 0 && (c==x || r==y)){
+							grid[c][r] = 7;
+						}
+					}	
+				}
+
+			}
+
 		}
 	}
 }
@@ -194,9 +241,12 @@ function set_pause_grid(){
 	}
 }
 
-function set_pix(x,y,c){
+function set_pix(x,y,c, target_grid){
+	if (target_grid == null){
+		target_grid = grid;
+	}
 	if (x>=0 && x<game_w && y>=0 && y<game_h){
-		grid[x][y] = c;
+		target_grid[x][y] = c;
 	}
 }
 
@@ -230,6 +280,40 @@ function get_matching_pic_in_circle(center_x, center_y, range, match_cols){
 	}
 
 	return return_val;
+}
+
+function draw_number(raw_num, x_pos, y_pos, imgs, spacing, target_grid){
+	x_pos = floor(x_pos);
+	y_pos = floor(y_pos);
+
+	let places = raw_num.toString().length
+	console.log("places: "+places)
+	let digits = [];
+
+	for (let i=places-1; i>=0; i-- ){
+		let tens = Math.pow(10, i);
+		let cut = floor(raw_num/tens);
+		//console.log(cut);
+		raw_num -= cut * tens;
+		digits.push(cut);
+	}
+	
+	let cur_x = x_pos;
+	for (let d=0; d<digits.length; d++){
+		let pic = imgs[digits[d]];
+
+		for (let x=0; x<pic.width; x++){
+			for (let y=0; y<pic.height; y++){
+				let index = ((y*pic.width) + x) * 4;
+				if (pic.pixels[index] > 150){
+					//console.log("draw "+(x+cur_x) + " , "+(y+y_pos))
+					set_pix(x+cur_x, y+y_pos, 1, target_grid);
+				}
+			}
+		}
+
+		cur_x += spacing + pic.width;
+	}
 }
 
 

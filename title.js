@@ -92,7 +92,10 @@ function draw_title(){
 		}
 	}
 
-	grid2screen();
+	//testing
+	draw_number(5671, 10, 90, num_img, 1, text_grid);
+
+
 }
 
 function draw_instructions(){
