@@ -19,7 +19,7 @@ let is_paused = false;
 //timer that kills the player
 let life_timer;
 const max_life_timer = 800;
-const time_bonus_per_gem = 50;
+const time_bonus_per_gem = 60;
 
 //level state
 let cur_level = 0;
@@ -31,6 +31,10 @@ let level_timer = 0;
 //game state
 let state;
 
+//game over effects
+let game_over_timer;
+const game_over_time_for_particle_break = 80;
+const game_over_time_for_reset = game_over_time_for_particle_break + 60;
 
 //gamera
 let disp_angle = 0;
@@ -70,15 +74,35 @@ function setup() {
 	clear_grid();
 
 	go_to_title();
-	//reset_game();
+
+	title_timer = title_input_lockout;
+	title_selector = 0;
 	
 }
 
 function go_to_title(){
+	//dismiss any lingering particles
+	particles.forEach( particle => {
+		//make sure to turn off the is text flag
+		particle.is_text = false;
+
+		//just straight up remove most of them
+		if (random(1) < 0.5){
+			particle.kill_me = true;
+		}
+		//have the rest fly away
+		else{
+			let angle = random(TAU);
+			let dist = random(10,50);//game_w * 1.5;
+			particle.target_x += cos(angle) * dist;
+			particle.target_y += sin(angle) * dist;
+		}
+	})
+
 	setup_title();
 	state = "title";
 	is_paused = false;
-	title_selector = 0;
+	
 }
 
 function reset_game(){
@@ -88,6 +112,10 @@ function reset_game(){
 	cur_level = 1;
 
 	life_timer = max_life_timer;
+	game_over_timer = 0;
+
+	title_timer = 0;
+	title_selector = 0;
 
 	player = make_player();
 
@@ -129,7 +157,7 @@ function reset_level(_ring){
 
 function draw() {
 	background(230);
-	clear_text_grid();
+	
 
 	if (state == "title"){
 		draw_title();
@@ -144,12 +172,13 @@ function draw() {
 		draw_game();
 	}
 
-	draw_debug();
-
 
 	pixel_effects_late();
 	grid2screen();
 
+
+
+	draw_debug();
 
 	// if (frameCount > 10 && frameCount < 20){
 	// 	saveCanvas('myCanvas_'+frameCount, 'jpg');
@@ -312,36 +341,105 @@ function draw_game(){
 		if (!debug_no_effects) 	pixel_effects_early();
 		else 					clear_grid();
 
-		//if we're doing the level transition, do that and nothing else
-		//doing this in draw so that it can draw in the coroutine
-		if (doing_level_trans){
-			level_trans_gen.next();
-		}
-		//only draw the level normally if we're not transitioning
-		else{
-			cur_col = 4;
-			draw_ring(ring, 1);
-		}
+		if (!player.is_dead)	clear_text_grid();
 
-		if (level_timer > immune_on_level_start || frameCount % 12 < 10 ){
-			draw_player(player);
+		if (game_over_timer <= game_over_time_for_particle_break){
+			//if we're doing the level transition, do that and nothing else
+			//doing this in draw so that it can draw in the coroutine
+			if (doing_level_trans){
+				level_trans_gen.next();
+			}
+			//only draw the level normally if we're not transitioning
+			else{
+				cur_col = 4;
+				draw_ring(ring, 1);
+			}
+
+			if (level_timer > immune_on_level_start || frameCount % 12 < 10 ){
+				draw_player(player);
+			}
+
+			gems.forEach(gem => {
+				draw_gem(gem);
+			})
+
+			obstacles.forEach(obs => {
+				draw_obstacle(obs);
+			})
 		}
-
-		gems.forEach(gem => {
-			draw_gem(gem);
-		})
-
-		obstacles.forEach(obs => {
-			draw_obstacle(obs);
-		})
 
 		particles.forEach(particle => {
 			draw_particle(particle)
 		})
 
+
+		//timer and small score when alive
 		if (!player.is_dead){
 			draw_timer_bar();
+
+			draw_number(cur_level, 3, 92, 1, text_grid);
 		}
+
+		//do dead stuff
+		else{
+			game_over_timer++;
+
+
+			if (game_over_timer == 2){
+				clear_text_grid();
+			}
+
+			//big effect where we wipe the whole screen
+			if (game_over_timer == game_over_time_for_particle_break){
+				//clear current particles
+				particles = [];
+
+				//make a particle for every pixel on screen
+				let pix = get_all_pix();
+				let p_range = game_w;
+				pix.forEach( p => {
+					let target_x = random(-p_range,game_w+p_range);
+					let target_y = random(-p_range,game_h+p_range);
+					particles.push( make_particle(p.x, p.y, target_x, target_y, p.col) );
+				})
+
+				//write the text to the text grid
+				let text_scale = 6;
+				let text_x = game_w/2 - get_number_width(cur_level, text_scale)/2;
+				let text_y = game_h/2 - get_number_height(text_scale)/2;
+				draw_number(cur_level, text_x, text_y, text_scale, text_grid);
+
+				let text_pix = get_all_pix_in_text();
+
+				console.log(text_pix.length +" to "+particles.length+" particles");
+				let step_dist = floor(particles.length / text_pix.length) - 1;
+
+				//assign them at random
+				for (let i=0; i<text_pix.length; i++){
+					let t_x = text_pix[i].x;
+					let t_y = text_pix[i].y;
+
+					let is_good = false;
+					while(!is_good){
+						let particle = particles[i*step_dist];// random(particles);
+						if (!particle.is_text){
+							is_good = true;
+							particle.target_x = t_x;
+							particle.target_y = t_y;
+							particle.is_text = true;
+							particle.col = 12;
+						}
+					}
+				}
+
+				//turn off the text
+				clear_text_grid();
+			}
+
+
+			
+		}
+		
 	}
 
 
@@ -419,6 +517,10 @@ function keyPressed(){
 		if (keyCode == 88){	//X
 			is_paused = !is_paused;
 		}
+
+		if (player.is_dead && game_over_timer > game_over_time_for_reset && keyCode == 90){
+			go_to_title();
+		}
 	}
 
 	else if (state == "title"){
@@ -428,7 +530,7 @@ function keyPressed(){
 		if (keyCode == 39){	//right
 			title_selector = 1;
 		}
-		if (keyCode == 90 || keyCode == 88){	//Z or X
+		if (title_timer > title_input_lockout && (keyCode == 90 || keyCode == 88)){	//Z or X
 			if (title_selector == 0){
 				reset_game();
 			}

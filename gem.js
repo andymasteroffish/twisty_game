@@ -82,7 +82,7 @@ function draw_gem(g){
 
 function break_gem(g){
 	//find all pixels matching our colors near us
-	let pix = get_matching_pic_in_circle(g.draw_x, g.draw_y, g.size/2, gem_cols);
+	let pix = get_matching_pix_in_circle(g.draw_x, g.draw_y, g.size/2, gem_cols);
 
 	let time_val = time_bonus_per_gem / pix.length ;
 

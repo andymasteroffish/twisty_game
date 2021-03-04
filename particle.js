@@ -61,6 +61,7 @@ function update_particle(p){
 	if (dist_sq(p.x,p.y, p.target_x, p.target_y) < particle_dist_from_target_to_kill*particle_dist_from_target_to_kill){
 		p.kill_me = true;
 	}
+	if (p.is_text)	p.kill_me = false;
 }
 
 //returns the total time val of particles still flying around

@@ -155,15 +155,15 @@ function pixel_effects_early(){
 				}
 
 
-				//try to advance and move
+				//try to advance and move (not for text though!)
 				if (text_grid[x][y] == 0){
 					set_pix(x-1+floor(random(3)), y-floor(random(2)), next_col);
 				}
-				
 
 				//and possibly jump up
 				if(random(9)<2 && c>1)	set_pix(x,y-2, c)
 			}
+
 		}
 	}
 }
@@ -250,7 +250,7 @@ function set_pix(x,y,c, target_grid){
 	}
 }
 
-function get_matching_pic_in_circle(center_x, center_y, range, match_cols){
+function get_matching_pix_in_circle(center_x, center_y, range, match_cols){
 	center_x = floor(center_x);
 	center_y = floor(center_y);
 	range = floor(range);
@@ -282,12 +282,88 @@ function get_matching_pic_in_circle(center_x, center_y, range, match_cols){
 	return return_val;
 }
 
-function draw_number(raw_num, x_pos, y_pos, imgs, spacing, target_grid){
+function get_all_pix(){
+	let return_val = [];
+
+	for (let x=0; x<game_w; x++){
+		for (let y=0; y<game_h; y++){
+			//check if this pixel is in the match list
+			if (grid[x][y] != 0){
+				return_val.push( {
+					x : x,
+					y : y,
+					col : grid[x][y]
+				})
+			}
+		}
+	}
+
+	return return_val;
+}
+
+function get_all_pix_in_text(){
+	let return_val = [];
+
+	for (let x=0; x<game_w; x++){
+		for (let y=0; y<game_h; y++){
+			//check if this pixel is in the match list
+			if (text_grid[x][y] != 0){
+				return_val.push( {
+					x : x,
+					y : y,
+					col : text_grid[x][y]
+				})
+			}
+		}
+	}
+
+	return return_val;
+}
+
+function draw_number(raw_num, x_pos, y_pos, scale, target_grid){
 	x_pos = floor(x_pos);
 	y_pos = floor(y_pos);
 
+	imgs = num_img;
+
+	if (scale == null)	scale = 1;
+
+	let digits = get_digits_list(raw_num);
+
+	
+	let cur_x = x_pos;
+	for (let d=0; d<digits.length; d++){
+		let pic = imgs[digits[d]];
+
+		for (let x=0; x<pic.width*scale; x++){
+			for (let y=0; y<pic.height*scale; y++){
+				let index = ((floor(y/scale)*pic.width) + floor(x/scale)) * 4;
+				if (pic.pixels[index] > 150){
+					set_pix(x+cur_x, y+y_pos, 1, target_grid);
+				}
+			}
+		}
+
+		cur_x += scale + pic.width * scale ;
+	}
+}
+
+function get_number_width(raw_num, scale){
+	let digits = get_digits_list(raw_num);
+	let cur_x = 0;
+	for (let d=0; d<digits.length; d++){
+		let pic = num_img[digits[d]];
+		cur_x += scale + pic.width * scale ;
+	}
+	return cur_x - scale;
+}
+
+function get_number_height(scale){
+	return num_img[0].height * scale;
+}
+
+function get_digits_list(raw_num){
 	let places = raw_num.toString().length
-	console.log("places: "+places)
 	let digits = [];
 
 	for (let i=places-1; i>=0; i-- ){
@@ -297,23 +373,8 @@ function draw_number(raw_num, x_pos, y_pos, imgs, spacing, target_grid){
 		raw_num -= cut * tens;
 		digits.push(cut);
 	}
-	
-	let cur_x = x_pos;
-	for (let d=0; d<digits.length; d++){
-		let pic = imgs[digits[d]];
 
-		for (let x=0; x<pic.width; x++){
-			for (let y=0; y<pic.height; y++){
-				let index = ((y*pic.width) + x) * 4;
-				if (pic.pixels[index] > 150){
-					//console.log("draw "+(x+cur_x) + " , "+(y+y_pos))
-					set_pix(x+cur_x, y+y_pos, 1, target_grid);
-				}
-			}
-		}
-
-		cur_x += spacing + pic.width;
-	}
+	return digits;
 }
 
 

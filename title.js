@@ -6,6 +6,9 @@ let cur_title_angle = 0;
 
 let title_selector;
 
+let title_timer;
+const title_input_lockout = 50;
+
 function setup_title(){
 	title_grid = new Array(game_w);
 	for (let x=0; x<game_w; x++){
@@ -27,8 +30,12 @@ function setup_title(){
 }
 
 function draw_title(){
+	title_timer++;
 
 	pixel_effects_early();
+
+
+	clear_text_grid();
 
 	//go through and set based on the image
 	cur_pause_angle += 0.2;
@@ -92,8 +99,15 @@ function draw_title(){
 		}
 	}
 
-	//testing
-	draw_number(5671, 10, 90, num_img, 1, text_grid);
+	//update particles
+	for(let i=particles.length-1; i>=0; i--){
+		update_particle(particles[i]);
+		draw_particle(particles[i]);
+
+		if (particles[i].kill_me){
+			particles.splice(i,1);
+		}
+	}
 
 
 }
@@ -105,11 +119,12 @@ function draw_instructions(){
 	for (let x=0; x<game_w; x++){
 		for (let y=0; y<game_h; y++){
 			title_grid[x][y].c = 0;
+			text_grid[x][y] = 0;
 
 			let index = ((y*game_w) + x) * 4;
 			if (instructions_img.pixels[index] > 150){
-				title_grid[x][y].c = 12;
-
+				//title_grid[x][y].c = 12;
+				text_grid[x][y] = 1;
 			}
 		}
 	}
