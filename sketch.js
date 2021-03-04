@@ -41,12 +41,14 @@ let disp_angle = 0;
 let disp_angle_lerp = 0.03;
 
 //debug toggles
+let debug_no_timer = true;
 let debug_show_palette = false;
 let debug_show_dark_palette = false;
 let debug_show_info = false;
 let debug_no_cam_rotate = false;
 let debug_no_effects = false;
 let debug_show_hit_boxes = false;
+
 
 //recording gameplay
 let recording = false;
@@ -242,6 +244,7 @@ function update_game(){
 
 	//reduce life total
 	life_timer--;
+	if (debug_no_timer) life_timer = max_life_timer;
 	if (life_timer <= 0){
 		kill_player();
 	}

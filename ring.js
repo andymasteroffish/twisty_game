@@ -9,6 +9,7 @@ function make_ring(level_num){
 	}
 
 	//testing
+	/*
 	for (let i=0; i<num_ring_steps; i++){
 		let prc = i / num_ring_steps;
 		let test_level_num = level_num % 3;
@@ -27,6 +28,25 @@ function make_ring(level_num){
 			ring.dists[i] = (1.0-prc)*20 + prc*40;
 		}
 	}
+	*/
+
+	let num_chunks = 3;
+	let cur_pos = 0;
+	//let chunk_sizes = [20, 30, 23, 27 ];
+	let chunk_sizes = [33, 31, 36 ];
+
+	let cur_dist = random(20,40);
+	for (let i=0; i<num_chunks; i++){
+		let this_chunk_size = chunk_sizes[i]
+		let chunk = get_ring_chunk( this_chunk_size, cur_dist );
+
+		for (let k=0; k<chunk.length; k++){
+			ring.dists[ cur_pos ] = chunk[k];
+			cur_dist = chunk[k];
+			cur_pos++
+		}
+
+	}
 
 	for (let i=0; i<5; i++){
 		ring.gem_spots.push(i*20 + 4);
@@ -42,6 +62,65 @@ function make_ring(level_num){
 
 	return ring;
 }
+
+function get_ring_chunk(steps, prev_dist){
+	let chunk = new Array(steps);
+
+	let type = floor(random(0,4));
+
+	//flat surface
+	if (type == 0){
+
+		let dist = 20 + floor(random(0, 5))*5;
+		if (prev_dist < 30){
+			dist = prev_dist + 10;
+		}
+		else{
+			dist = prev_dist - 10;
+		}	
+
+		for (let i=0; i<steps; i++){
+			chunk[i] = dist;
+		}
+	}
+
+	//curve
+	if (type == 1){
+
+		for (let i=0; i<steps; i++){
+			let prc = i/steps;
+			chunk[i] = (1.0-prc)*25 + prc*45;
+		}
+	}
+
+	//wall
+	if (type == 2){
+
+		let top = Math.max(prev_dist-15, 20);
+		if (prev_dist < 26){
+			top = 35;
+		}
+		for (let i=0; i<steps; i++){
+			if (i>steps*0.35 && i<steps*0.65){
+				chunk[i] = top;
+			}
+			else{
+				chunk[i] = prev_dist;
+			}
+		}
+	}
+
+	//wavy
+	if (type == 3){
+		for (let i=0; i<steps; i++){
+			chunk[i] = 35 + sin(i*0.4) * 3;
+		}
+	}
+
+
+	return chunk;
+}
+
 
 function make_lerped_ring(ring_a, ring_b, prc){
 	let r = {
