@@ -134,6 +134,8 @@ function reset_level(_ring){
 
 	level_timer = 0;
 
+	player.angle_vel = 0;
+
 	//populate gems
 	gems = [];
 	ring.gem_spots.forEach(spot =>{
@@ -514,7 +516,7 @@ function keyPressed(){
 				start_flip_jump(player);
 			}
 
-			console.log(keyCode);
+			//console.log(keyCode);
 		}
 
 		if (keyCode == 88){	//X

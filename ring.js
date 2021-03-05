@@ -1,5 +1,11 @@
-const num_ring_steps = 100;
+const num_ring_steps = 99;
 const ring_steps_2_radians = 6.283185/num_ring_steps;
+
+//placing gems and obstacles
+const object_check_dist = 4;	//how far in either direction to check for sudden changes
+const max_height_change_for_object = 5;	//deltas of this size or bigger are ignored
+const min_dist_between_objects = 8;//7;
+const min_obstacle_dist_from_player_start = 5;
 
 function make_ring(level_num){
 	let ring = {
@@ -8,32 +14,13 @@ function make_ring(level_num){
 		obstacle_spots : []
 	}
 
-	//testing
-	/*
-	for (let i=0; i<num_ring_steps; i++){
-		let prc = i / num_ring_steps;
-		let test_level_num = level_num % 3;
-		if (test_level_num == 0){
-			if ((i+10)%num_ring_steps < num_ring_steps/2){
-				ring.dists[i] = 20;
-			}else{
-				ring.dists[i] = 40;
-			}
-		}
-		else if (test_level_num == 2){
-			
-			ring.dists[i] = 30 + sin(i*0.4) * 3;
-		}
-		else{
-			ring.dists[i] = (1.0-prc)*20 + prc*40;
-		}
-	}
-	*/
+	let num_gems = 4;
+	let num_obstacles = 2;
 
 	let num_chunks = 3;
 	let cur_pos = 0;
 	//let chunk_sizes = [20, 30, 23, 27 ];
-	let chunk_sizes = [33, 31, 36 ];
+	let chunk_sizes = [33, 33, 33];//[33, 31, 35];
 
 	let cur_dist = random(20,40);
 	for (let i=0; i<num_chunks; i++){
@@ -45,19 +32,73 @@ function make_ring(level_num){
 			cur_dist = chunk[k];
 			cur_pos++
 		}
-
 	}
 
-	for (let i=0; i<5; i++){
-		ring.gem_spots.push(i*20 + 4);
-		
+
+	//for each post anaylize if we can put a an object here here
+	let possible_spots = [];
+	let player_pos = map( player.angle, 0, TAU, 0, num_ring_steps);
+	for (let i=0; i<num_ring_steps; i++){
+
+		let is_good = true;
+
+		//make sure it's not on a cliff
+		for (let k=i-object_check_dist; k<i+object_check_dist; k++){
+			let pos_a = (k+num_ring_steps)%num_ring_steps;
+			let pos_b = (k+num_ring_steps+1)%num_ring_steps;
+			let delta = abs(ring.dists[pos_a] - ring.dists[pos_b])
+			if (delta > max_height_change_for_object){
+				is_good = false;
+			}
+		}
+
+		//make sure the player isn't here
+		let player_dist = Math.min( Math.min(abs(player_pos-i), abs( (player_pos-num_ring_steps) - i)), abs( (player_pos+num_ring_steps) - i) );
+		if ( player_dist < min_obstacle_dist_from_player_start){
+			is_good = false;
+		}
+
+		if (is_good){
+			possible_spots.push(i);
+			//ring.gem_spots.push( i);
+		}
 	}
 
-	//grab some and make it an obstacle
-	for (let i=0; i<2; i++){
-		let rand_id = Math.floor( random(ring.gem_spots.length));
-		ring.obstacle_spots.push( ring.gem_spots[rand_id] );
-		ring.gem_spots.splice(rand_id,1);
+	//testing
+	// while(possible_spots.length > 0){
+	// 	//grab oe at random
+	// 	let rand_id = floor(random(0,possible_spots.length));
+	// 	let this_pos = possible_spots[rand_id];
+	// 	ring.gem_spots.push( this_pos );
+
+	// 	//remove all that are close to that
+	// 	for (let i=possible_spots.length-1; i>=0; i--){
+	// 		if ( abs(possible_spots[i]-this_pos) < min_dist_between_objects){
+	// 			possible_spots.splice(i,1);
+	// 		}
+	// 	}
+	// }
+
+	//grab spots for gems and obstacles
+	while(possible_spots.length > 0 && (ring.gem_spots.length < num_gems || ring.obstacle_spots.length < num_obstacles)){
+		//grab one at random
+		let rand_id = floor(random(0,possible_spots.length));
+		let this_pos = possible_spots[rand_id];
+
+		//remove all that are close to that
+		for (let i=possible_spots.length-1; i>=0; i--){
+			if ( abs(possible_spots[i]-this_pos) < min_dist_between_objects){
+				possible_spots.splice(i,1);
+			}
+		}
+
+		//add it to our target list
+		if (ring.gem_spots.length < num_gems){
+			ring.gem_spots.push( this_pos );
+		}
+		else{
+			ring.obstacle_spots.push( this_pos );
+		}
 	}
 
 	return ring;
@@ -66,19 +107,20 @@ function make_ring(level_num){
 function get_ring_chunk(steps, prev_dist){
 	let chunk = new Array(steps);
 
-	let type = floor(random(0,4));
+	let type = 0;//floor(random(0,5));
 
 	//flat surface
 	if (type == 0){
 
-		let dist = 20 + floor(random(0, 5))*5;
-		if (prev_dist < 30){
-			dist = prev_dist + 10;
-		}
-		else{
-			dist = prev_dist - 10;
-		}	
+		let dist = 43 - floor(random(0, 3))*7;
+		// if (prev_dist < 39){
+		// 	dist = prev_dist + 10;
+		// }
+		// else{
+		// 	dist = prev_dist - 10;
+		// }	
 
+		// dist = 35;// Math.min(43,dist);
 		for (let i=0; i<steps; i++){
 			chunk[i] = dist;
 		}
@@ -112,8 +154,18 @@ function get_ring_chunk(steps, prev_dist){
 
 	//wavy
 	if (type == 3){
+		let freq = 6;
 		for (let i=0; i<steps; i++){
-			chunk[i] = 35 + sin(i*0.4) * 3;
+			let prc = i/steps;
+			chunk[i] = 37 + sin(prc*PI*freq) * 3;
+		}
+	}
+
+	//curved triangle
+	if (type == 4){
+		for (let i=0; i<steps; i++){
+			let prc = i/steps;
+			chunk[i] = 35 + sin(prc*PI*2) * 5;
 		}
 	}
 
