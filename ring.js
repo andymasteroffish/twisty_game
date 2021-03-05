@@ -4,8 +4,12 @@ const ring_steps_2_radians = 6.283185/num_ring_steps;
 //placing gems and obstacles
 const object_check_dist = 4;	//how far in either direction to check for sudden changes
 const max_height_change_for_object = 5;	//deltas of this size or bigger are ignored
-const min_dist_between_objects = 8;//7;
+const min_dist_between_objects = 8;
 const min_obstacle_dist_from_player_start = 5;
+
+//scaling things with level
+const gem_counts = [2,2,2,3,3,3,3,4];
+const obstacle_counts = [0,1,1,1,1,2];
 
 function make_ring(level_num){
 	let ring = {
@@ -14,8 +18,15 @@ function make_ring(level_num){
 		obstacle_spots : []
 	}
 
-	let num_gems = 4;
-	let num_obstacles = 2;
+	let num_gems = gem_counts[ Math.min(level_num,gem_counts.length-1) ];
+	let num_obstacles = obstacle_counts[ Math.min(level_num,obstacle_counts.length-1) ];
+
+	if (level_num > 2){
+		if (random(1) < 0.5)	num_gems++;
+		if (random(1) < 0.25)	num_obstacles++;
+	}
+
+	console.log("level "+level_num+"  gems: "+num_gems+"  obstacles :"+num_obstacles);
 
 	let num_chunks = 3;
 	let cur_pos = 0;
@@ -25,7 +36,7 @@ function make_ring(level_num){
 	let cur_dist = random(20,40);
 	for (let i=0; i<num_chunks; i++){
 		let this_chunk_size = chunk_sizes[i]
-		let chunk = get_ring_chunk( this_chunk_size, cur_dist );
+		let chunk = get_ring_chunk( this_chunk_size, cur_dist, level_num );
 
 		for (let k=0; k<chunk.length; k++){
 			ring.dists[ cur_pos ] = chunk[k];
@@ -81,19 +92,30 @@ function make_ring(level_num){
 
 	//grab spots for gems and obstacles
 	while(possible_spots.length > 0 && (ring.gem_spots.length < num_gems || ring.obstacle_spots.length < num_obstacles)){
+		console.log("grab a spot");
 		//grab one at random
 		let rand_id = floor(random(0,possible_spots.length));
 		let this_pos = possible_spots[rand_id];
 
 		//remove all that are close to that
 		for (let i=possible_spots.length-1; i>=0; i--){
-			if ( abs(possible_spots[i]-this_pos) < min_dist_between_objects){
+			//let this_dist = Math.min( Math.min(abs(player_pos-i), abs( (player_pos-num_ring_steps) - i)), abs( (player_pos+num_ring_steps) - i) );
+			let this_dist = Math.min( 
+				Math.min(abs(possible_spots[i]-this_pos), abs((possible_spots[i]-num_ring_steps)-this_pos)), 
+				abs((possible_spots[i]+num_ring_steps)-this_pos)
+			)
+			if ( this_dist < min_dist_between_objects){
 				possible_spots.splice(i,1);
 			}
 		}
 
+		let add_to_gems = ring.gem_spots.length < num_gems;
+		if (ring.obstacle_spots.length < ring.gem_spots.length && ring.obstacle_spots.length < num_obstacles){
+			add_to_gems = false;
+		}
+
 		//add it to our target list
-		if (ring.gem_spots.length < num_gems){
+		if (add_to_gems){
 			ring.gem_spots.push( this_pos );
 		}
 		else{
@@ -101,13 +123,18 @@ function make_ring(level_num){
 		}
 	}
 
+	console.log("done creating ring");
+
 	return ring;
 }
 
-function get_ring_chunk(steps, prev_dist){
+function get_ring_chunk(steps, prev_dist, level_num){
 	let chunk = new Array(steps);
 
-	let type = 0;//floor(random(0,5));
+	let type = floor(random(0,Math.min(5,level_num)));
+
+	type = floor(random(3,5));
+	
 
 	//flat surface
 	if (type == 0){
@@ -135,25 +162,8 @@ function get_ring_chunk(steps, prev_dist){
 		}
 	}
 
-	//wall
-	if (type == 2){
-
-		let top = Math.max(prev_dist-15, 20);
-		if (prev_dist < 26){
-			top = 35;
-		}
-		for (let i=0; i<steps; i++){
-			if (i>steps*0.35 && i<steps*0.65){
-				chunk[i] = top;
-			}
-			else{
-				chunk[i] = prev_dist;
-			}
-		}
-	}
-
 	//wavy
-	if (type == 3){
+	if (type == 2){
 		let freq = 6;
 		for (let i=0; i<steps; i++){
 			let prc = i/steps;
@@ -162,12 +172,35 @@ function get_ring_chunk(steps, prev_dist){
 	}
 
 	//curved triangle
-	if (type == 4){
+	if (type == 3){
 		for (let i=0; i<steps; i++){
 			let prc = i/steps;
 			chunk[i] = 35 + sin(prc*PI*2) * 5;
 		}
 	}
+
+	//wall
+	if (type == 4){
+
+		let top = Math.max(prev_dist-15, 20);
+		if (prev_dist < 26){
+			top = 35;
+		}
+		for (let i=0; i<steps; i++){
+			let prc = i/steps;
+			chunk[i] = prev_dist;
+			if (prc > 0.35 && prc < 0.65){
+				chunk[i] = top;
+			}
+			else if (prc >= 0.65){
+				chunk[i] = map(prc,0.65,1, top, prev_dist);
+			}
+		}
+	}
+
+	
+
+	
 
 
 	return chunk;
@@ -209,6 +242,7 @@ function draw_ring(ring, scale) {
 
 
 function* do_level_transition() {
+	//console.log("start level transition");
 
 	let cols = [4 , 10, 8];
 	let scale_to_darken = 0.7;
@@ -264,7 +298,7 @@ function* do_level_transition() {
 		//while we're doing this, move the player to their start height
 		let prc =  draw_count / num_depth;
 		player.dist = (1.0-prc)*player_cur_dist + prc*player_level_start_dist
-
+		//console.log("A draw cound "+draw_count);
 		yield null;
 	}
 
@@ -277,9 +311,7 @@ function* do_level_transition() {
 			draw_ring(transition_rings[i], transition_rings[i].scale);
 		}
 		
-		// //while we're doing this, move the player to their start height
-		// let prc = transition_rings[transition_rings.length-1].scale;// draw_count / num_depth;
-		// player.dist = (1.0-prc)*player_cur_dist + prc*player_level_start_dist
+		//console.log("B scale "+transition_rings[transition_rings.length-1].scale);
 
 		yield null;
 	}
@@ -294,19 +326,9 @@ function* do_level_transition() {
 		}
 
 		draw_count++;
+		//console.log("C draw cound "+draw_count);
 		yield null;
 	}
-
-	//testing
-	// while(true){
-
-	// 	for (let i=0; i<transition_rings.length; i++){
-	// 		cur_col = cols[i%2];
-	// 		draw_ring(transition_rings[i], transition_rings[i].scale);
-	// 	}
-
-	// 	yield null
-	// }
 
 	doing_level_trans = false;
 	reset_level(new_ring);

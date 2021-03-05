@@ -271,8 +271,6 @@ function break_player(p){
 	//find all pixels matching our colors near us
 	let pix = get_matching_pix_in_circle(p.draw_x, p.draw_y, p.size/2, [12,13]);
 
-	console.log("player particles: "+pix.length);
-
 	//make them particles
 	pix.forEach( p => {
 		for (let i=0; i<10; i++){

@@ -111,7 +111,7 @@ function reset_game(){
 	console.log("RESET");
 	state = "game";
 
-	cur_level = 1;
+	cur_level = 0;
 
 	life_timer = max_life_timer;
 	game_over_timer = 0;
