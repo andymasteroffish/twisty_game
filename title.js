@@ -109,6 +109,11 @@ function draw_title(){
 		}
 	}
 
+	//high score text
+	if (high_score > 0 || true){
+		draw_number(high_score, 2, 3, 1, text_grid, 4);
+	}
+
 
 }
 

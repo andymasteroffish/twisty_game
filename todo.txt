@@ -7,16 +7,16 @@
 
 [X] timer bar
 
-[] high score
+[X] high score
 
-[] title screen
+[X] title screen
 
-[] game over screen with score
-	[] have level burst apart after the player does
+[X] game over screen with score
+	[X] have level burst apart after the player does
 
-[] level gen
+[X] level gen
 
-[] instructions / credits
+[X] instructions / credits
 
 
 Future Goals

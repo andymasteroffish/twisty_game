@@ -320,13 +320,14 @@ function get_all_pix_in_text(){
 	return return_val;
 }
 
-function draw_number(raw_num, x_pos, y_pos, scale, target_grid){
+function draw_number(raw_num, x_pos, y_pos, scale, target_grid, col){
 	x_pos = floor(x_pos);
 	y_pos = floor(y_pos);
 
 	imgs = num_img;
 
 	if (scale == null)	scale = 1;
+	if (col == null)	col = 1;
 
 	let digits = get_digits_list(raw_num);
 
@@ -339,7 +340,7 @@ function draw_number(raw_num, x_pos, y_pos, scale, target_grid){
 			for (let y=0; y<pic.height*scale; y++){
 				let index = ((floor(y/scale)*pic.width) + floor(x/scale)) * 4;
 				if (pic.pixels[index] > 150){
-					set_pix(x+cur_x, y+y_pos, 1, target_grid);
+					set_pix(x+cur_x, y+y_pos, col, target_grid);
 				}
 			}
 		}

@@ -1,0 +1,31 @@
+/* https://github.com/processing/p5.js/wiki/Positioning-your-canvas */
+
+html, body {
+  height: 100%;
+  background: #1f0e1c;
+}
+
+body {
+  margin: 0;
+  display: flex;
+
+  /* This centers our sketch horizontally. */
+  justify-content: center;
+
+  /* This centers our sketch vertically. */
+  align-items: center;
+
+  color: #584563;
+  font-family: "Lucida Console", "Courier New", monospace;
+}
+
+p{
+	position: fixed;
+    bottom: 0;
+    left: 10px;
+    width: 100%;
+}
+
+a{
+	color: #70377f
+}

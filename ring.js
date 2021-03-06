@@ -26,14 +26,14 @@ function make_ring(level_num){
 		if (random(1) < 0.25)	num_obstacles++;
 	}
 
-	console.log("level "+level_num+"  gems: "+num_gems+"  obstacles :"+num_obstacles);
+	//console.log("level "+level_num+"  gems: "+num_gems+"  obstacles :"+num_obstacles);
 
 	let num_chunks = 3;
 	let cur_pos = 0;
 	//let chunk_sizes = [20, 30, 23, 27 ];
 	let chunk_sizes = [33, 33, 33];//[33, 31, 35];
 
-	let cur_dist = random(20,40);
+	let cur_dist = 40;//random(20,40);
 	for (let i=0; i<num_chunks; i++){
 		let this_chunk_size = chunk_sizes[i]
 		let chunk = get_ring_chunk( this_chunk_size, cur_dist, level_num );
@@ -92,7 +92,6 @@ function make_ring(level_num){
 
 	//grab spots for gems and obstacles
 	while(possible_spots.length > 0 && (ring.gem_spots.length < num_gems || ring.obstacle_spots.length < num_obstacles)){
-		console.log("grab a spot");
 		//grab one at random
 		let rand_id = floor(random(0,possible_spots.length));
 		let this_pos = possible_spots[rand_id];
@@ -123,8 +122,6 @@ function make_ring(level_num){
 		}
 	}
 
-	console.log("done creating ring");
-
 	return ring;
 }
 
@@ -133,13 +130,12 @@ function get_ring_chunk(steps, prev_dist, level_num){
 
 	let type = floor(random(0,Math.min(5,level_num)));
 
-	type = floor(random(3,5));
-	
+	//console.log("level "+level_num+" chunk type: "+type);
 
 	//flat surface
 	if (type == 0){
 
-		let dist = 43 - floor(random(0, 3))*7;
+		let dist = 43 - floor(random(0, 2))*9;
 		// if (prev_dist < 39){
 		// 	dist = prev_dist + 10;
 		// }
@@ -179,24 +175,48 @@ function get_ring_chunk(steps, prev_dist, level_num){
 		}
 	}
 
-	//wall
+	//dip
 	if (type == 4){
 
-		let top = Math.max(prev_dist-15, 20);
-		if (prev_dist < 26){
-			top = 35;
+		let option_a = 45;
+		let option_b = 20;
+
+		let mid_dist = option_a;
+		if (abs(prev_dist-option_b) > abs(prev_dist-option_a)){
+			mid_dist = option_b;
 		}
 		for (let i=0; i<steps; i++){
-			let prc = i/steps;
-			chunk[i] = prev_dist;
-			if (prc > 0.35 && prc < 0.65){
-				chunk[i] = top;
+			let total_prc = i/steps;
+			if (total_prc < 0.5){
+				let prc = total_prc*2;
+				chunk[i] = (1.0-prc)*prev_dist + prc*mid_dist;
 			}
-			else if (prc >= 0.65){
-				chunk[i] = map(prc,0.65,1, top, prev_dist);
+			else{
+				let prc = (total_prc-0.5)*2;
+				chunk[i] = (1.0-prc)*mid_dist + prc*prev_dist;
 			}
 		}
+
 	}
+
+	// //wall
+	// if (type == 4){
+
+	// 	let top = Math.max(prev_dist-15, 20);
+	// 	if (prev_dist < 26){
+	// 		top = 35;
+	// 	}
+	// 	for (let i=0; i<steps; i++){
+	// 		let prc = i/steps;
+	// 		chunk[i] = prev_dist;
+	// 		if (prc > 0.2 && prc < 0.5){
+	// 			chunk[i] = top;
+	// 		}
+	// 		else if (prc >= 0.5){
+	// 			chunk[i] = map(prc,0.65,1, top, 35);
+	// 		}
+	// 	}
+	// }
 
 	
 

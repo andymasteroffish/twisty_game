@@ -19,7 +19,7 @@ let is_paused = false;
 //timer that kills the player
 let life_timer;
 const max_life_timer = 800;
-const time_bonus_per_gem = 60;
+const time_bonus_per_gem = 80;
 
 //level state
 let cur_level = 0;
@@ -31,6 +31,9 @@ let level_timer = 0;
 //game state
 let state;
 
+let high_score = 0;
+let new_high_score;
+
 //game over effects
 let game_over_timer;
 const game_over_time_for_particle_break = 80;
@@ -41,7 +44,7 @@ let disp_angle = 0;
 let disp_angle_lerp = 0.03;
 
 //debug toggles
-let debug_no_timer = true;
+let debug_no_timer = false;
 let debug_show_palette = false;
 let debug_show_dark_palette = false;
 let debug_show_info = false;
@@ -108,10 +111,10 @@ function go_to_title(){
 }
 
 function reset_game(){
-	console.log("RESET");
 	state = "game";
 
 	cur_level = 0;
+	new_high_score = false;
 
 	life_timer = max_life_timer;
 	game_over_timer = 0;
@@ -154,8 +157,8 @@ function reset_level(_ring){
 		obstacles.push(obstacle);
 	})
 
-	console.log("gems: "+gems.length);
-	console.log("obstacles: "+obstacles.length);
+	// console.log("gems: "+gems.length);
+	// console.log("obstacles: "+obstacles.length);
 }
 
 
@@ -204,11 +207,11 @@ function draw() {
 		rec_frames.push(pic);
 
 		//photoshop caps me at 500
-		if (rec_frames.length > 500){
-			recording = false;
-			is_exporting_recording = true;
-			export_frame = 0;
-		}
+		// if (rec_frames.length > 500){
+		// 	recording = false;
+		// 	is_exporting_recording = true;
+		// 	export_frame = 0;
+		// }
 	}
 
 	if (is_exporting_recording){
@@ -262,7 +265,6 @@ function update_game(){
 
 		//did the player collect?
 		if (level_timer > immune_on_level_start/2 && hit_check(player, gem, hit_padding_gems)){
-			console.log("got em!");
 			break_gem(gem);
 			gems.splice(i,1);
 			add_time(time_bonus_per_gem);
@@ -320,12 +322,17 @@ function kill_player(){
 
 	break_player(player);
 	player.is_dead = true;
+
+	//is this a high score?
+	if (cur_level > high_score){
+		high_score = cur_level;
+		new_high_score = true;
+	}
 }
 
 function trigger_level_end(){
 	obstacles = [];
 	
-	console.log("end level "+cur_level);
 	cur_level++;
 
 	doing_level_trans = true;
@@ -371,6 +378,9 @@ function draw_game(){
 			obstacles.forEach(obs => {
 				draw_obstacle(obs);
 			})
+
+			//timer
+			draw_timer_bar();
 		}
 
 		particles.forEach(particle => {
@@ -378,10 +388,8 @@ function draw_game(){
 		})
 
 
-		//timer and small score when alive
+		//small score when alive
 		if (!player.is_dead){
-			draw_timer_bar();
-
 			draw_number(cur_level, 3, 92, 1, text_grid);
 		}
 
@@ -416,7 +424,7 @@ function draw_game(){
 
 				let text_pix = get_all_pix_in_text();
 
-				console.log(text_pix.length +" to "+particles.length+" particles");
+				//console.log(text_pix.length +" to "+particles.length+" particles");
 				let step_dist = floor(particles.length / text_pix.length) - 1;
 
 				//assign them at random
@@ -433,6 +441,7 @@ function draw_game(){
 							particle.target_y = t_y;
 							particle.is_text = true;
 							particle.col = 12;
+							if (new_high_score && random(1)<0.3)	particle.col = 8;
 						}
 					}
 				}

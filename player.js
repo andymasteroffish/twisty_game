@@ -1,7 +1,7 @@
 //Player values
 const push_per_press = 0.019;
 
-const slope_push = 0.001;
+const slope_push = 0.0012;
 const max_slope_push = 0.006;
 
 const max_step_height = 5;
@@ -140,7 +140,6 @@ function player_physics_update(p, ring){
 }
 
 function start_flip_jump(p){
-	console.log("JUMP")
 	p.doing_flip_jump = true;
 	p.flip_jump_gen = do_flip_jump(p);
 }
