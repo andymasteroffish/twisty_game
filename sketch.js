@@ -1,3 +1,5 @@
+const using_twisty_controller = true;
+
 //game values
 const game_w = 100;
 const game_h = 100;
@@ -521,18 +523,18 @@ function keyPressed(){
 				rotary_input(player, -1);
 			}
 
-			if (keyCode == 90){	//Z
+			if (keyCode == 88){	//X
 				start_flip_jump(player);
 			}
 
 			//console.log(keyCode);
 		}
 
-		if (keyCode == 88){	//X
+		if (keyCode == 90){	//Z
 			is_paused = !is_paused;
 		}
 
-		if (player.is_dead && game_over_timer > game_over_time_for_reset && keyCode == 90){
+		if (player.is_dead && game_over_timer > game_over_time_for_reset && (keyCode == 90 || keyCode == 88)){
 			go_to_title();
 		}
 	}

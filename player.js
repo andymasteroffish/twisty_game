@@ -1,5 +1,6 @@
 //Player values
-const push_per_press = 0.019;
+const push_per_press_keyboard = 0.019;
+const push_per_press_controller = 0.008;
 
 const slope_push = 0.0012;
 const max_slope_push = 0.006;
@@ -41,7 +42,12 @@ function make_player(){
 }
 
 function rotary_input(player, dir){
-	player.angle_vel += push_per_press * dir;
+	if (using_twisty_controller){
+		player.angle_vel += push_per_press_controller * dir;
+		console.log("twisty");
+	}else{
+		player.angle_vel += push_per_press_keyboard * dir;
+	}
 }
 
 
