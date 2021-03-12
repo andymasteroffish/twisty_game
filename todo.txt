@@ -18,6 +18,12 @@
 
 [X] instructions / credits
 
+[] audio
+	[]speed us music when low on time
+	[] mute
+
+[] info card
+
 
 Future Goals
 
