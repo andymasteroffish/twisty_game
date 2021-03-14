@@ -18,11 +18,15 @@
 
 [X] instructions / credits
 
-[] audio
-	[]speed us music when low on time
-	[] mute
+[X] audio
+	[X] speed up music when low on time
+	[X] mute
 
 [] info card
+
+[] title gif without the start buttons
+
+[X] muting makes weird shit happen with the audio
 
 
 Future Goals
