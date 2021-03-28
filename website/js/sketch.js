@@ -1,5 +1,7 @@
 const using_twisty_controller = false;
 
+const public_release = true;
+
 //game values
 const game_w = 100;
 const game_h = 100;
@@ -588,36 +590,38 @@ function keyPressed(){
 		toggle_mute();
 	}
 
-	if (key == 't'){
-		gems = [];
-		trigger_level_end();
-	}
-	if (key == 'r'){
-		reset_game();
-	}
-	if (key == 'p'){
-		debug_show_palette = !debug_show_palette;
-	}
-	if (key == 'd'){
-		debug_show_dark_palette = !debug_show_dark_palette;
-	}
-	if (key == 'e'){
-		debug_no_effects = !debug_no_effects;
-	}
-	if (key == 'h'){
-		debug_show_hit_boxes = !debug_show_hit_boxes;
-	}
-	if (key == 'i'){
-		debug_show_info = !debug_show_info;
-	}
-	if (key == 's'){
-		if (!recording){
-			recording = true;
+	if (!public_release){
+		if (key == 't'){
+			gems = [];
+			trigger_level_end();
 		}
-		else{
-			recording = false;
-			is_exporting_recording = true;
-			export_frame = 0;
+		if (key == 'r'){
+			reset_game();
+		}
+		if (key == 'p'){
+			debug_show_palette = !debug_show_palette;
+		}
+		if (key == 'd'){
+			debug_show_dark_palette = !debug_show_dark_palette;
+		}
+		if (key == 'e'){
+			debug_no_effects = !debug_no_effects;
+		}
+		if (key == 'h'){
+			debug_show_hit_boxes = !debug_show_hit_boxes;
+		}
+		if (key == 'i'){
+			debug_show_info = !debug_show_info;
+		}
+		if (key == 's'){
+			if (!recording){
+				recording = true;
+			}
+			else{
+				recording = false;
+				is_exporting_recording = true;
+				export_frame = 0;
+			}
 		}
 	}
 }
